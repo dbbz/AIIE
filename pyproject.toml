@@ -7,6 +7,9 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
+streamlit = "^1.26.0"
+watchdog = "^3.0.0"
+pandas = "^2.1.0"
 
 
 [build-system]
