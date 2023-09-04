@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "aiie"
+version = "0.1.0"
+description = ""
+authors = ["Djalel Benbouzid <djalel@argmax.ai>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
