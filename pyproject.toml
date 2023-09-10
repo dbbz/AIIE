@@ -10,7 +10,11 @@ python = "^3.11"
 streamlit = "^1.26.0"
 watchdog = "^3.0.0"
 pandas = "^2.1.0"
+plotly = "^5.16.1"
 
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.0.287"
 
 [build-system]
 requires = ["poetry-core"]
