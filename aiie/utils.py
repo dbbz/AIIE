@@ -1,11 +1,11 @@
+import pandas as pd
+import streamlit as st
 from pandas.api.types import (
     is_categorical_dtype,
     is_datetime64_any_dtype,
     is_numeric_dtype,
     is_object_dtype,
 )
-import pandas as pd
-import streamlit as st
 
 
 def dataframe_with_selections(df: pd.DataFrame) -> pd.DataFrame:
