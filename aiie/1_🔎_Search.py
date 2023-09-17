@@ -37,10 +37,12 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     # remove the extra unused columns
     cols_to_drop = [name for name in df.columns if name.startswith("Unnamed:")]
 
+    df["Country(s)"] = df["Country(s)"].str.replace(";", ",")
     columns = set(df.columns.to_list())
     int_columns = {"Released", "Occurred"}
     cat_columns = {"Type", "Country(s)", "Sector(s)", "Technology(ies)"}
     str_columns = columns - int_columns - cat_columns
+
 
     # convert the years to Int16 (i.e. int16 with a None option)
     for col in int_columns:
@@ -70,9 +72,14 @@ df = filter_dataframe(df)
 df_selected = dataframe_with_selections(df)
 # st.dataframe(df, use_container_width=True, hide_index=True)
 
-
 for link in df_selected["Summary/links"]:
     st.write(link)
     if link is not None:
         description = scrap_incident_description(link)
         st.write(description)
+
+a = pd.Series(df["Country(s)"].unique().sort_values()).str.replace(";", ",")
+st.data_editor(a, column_config={"0": st.column_config.ListColumn()}, use_container_width=True, height=1000)
+
+# TODO: replace the column names with enums
+# Todo: filtering is not practical when too many categories and one just wants to select a few

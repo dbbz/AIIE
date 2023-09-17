@@ -22,8 +22,13 @@ def dataframe_with_selections(df: pd.DataFrame) -> pd.DataFrame:
         df_with_selections,
         hide_index=True,
         use_container_width=True,
-        column_config={"Select": st.column_config.CheckboxColumn(required=True)},
+        column_config={
+            "Select": st.column_config.CheckboxColumn(required=True),
+            "Summary/links": st.column_config.LinkColumn(),
+            "Country(s)": st.column_config.ListColumn(),
+        },
         disabled=df.columns,
+
     )
 
     # Filter the dataframe using the temporary column, then drop the column
@@ -97,6 +102,6 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
                     f"Text search in :red[{column}]",
                 )
                 if user_text_input:
-                    df = df[df[column].astype(str).str.contains(user_text_input)]
+                    df = df[df[column].astype(str).str.lower().str.contains(user_text_input.lower())]
 
     return df
