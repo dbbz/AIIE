@@ -1,14 +1,25 @@
+from collections import namedtuple
+
 import pandas as pd
 import streamlit as st
 from pandas.api.types import (
-    is_categorical_dtype,
     is_datetime64_any_dtype,
     is_numeric_dtype,
     is_object_dtype,
 )
 
 
-def dataframe_with_selections(df: pd.DataFrame) -> pd.DataFrame:
+def named_tabs(*tab_names):
+    """
+    A simple pattern for "named tabs",
+    this way, one can add tabs on the fly in any order.
+    """
+    TabsNames = namedtuple('_', tab_names)
+    tabs = st.tabs(TabsNames._fields)
+    return TabsNames(*tabs)
+
+
+def dataframe_with_selections(df: pd.DataFrame, height:int | None = None) -> pd.DataFrame:
     """
     Adds a checkbox column at the beginning of the dataframe.
     It is a trick while Streamlit has no other way to capture the row selection event.
@@ -28,7 +39,7 @@ def dataframe_with_selections(df: pd.DataFrame) -> pd.DataFrame:
             "Country(s)": st.column_config.ListColumn(),
         },
         disabled=df.columns,
-
+        height=height,
     )
 
     # Filter the dataframe using the temporary column, then drop the column
@@ -36,7 +47,7 @@ def dataframe_with_selections(df: pd.DataFrame) -> pd.DataFrame:
     return selected_rows.drop('Select', axis=1)
 
 
-def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+def filter_dataframe(df: pd.DataFrame, use_sidebar: bool = True) -> pd.DataFrame:
     """
     Adds a UI on top of a dataframe to let viewers filter columns.
     Adapted from: https://blog.streamlit.io/make-dynamic-filters-in-streamlit-and-show-their-effects-on-the-original-dataset/
@@ -60,13 +71,16 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
         if is_datetime64_any_dtype(df[col]):
             df[col] = df[col].dt.tz_localize(None)
 
-    modification_container = st.sidebar.expander("Filtering")
+    if use_sidebar:
+        modification_container = st.sidebar.expander("Filtering", expanded=True)
+    else:
+        modification_container = st.expander("Filtering", expanded=True)
 
     with modification_container:
         to_filter_columns = st.multiselect("Filter data on", df.columns)
         for column in to_filter_columns:
             # Treat columns with < 10 unique values as categorical
-            if is_categorical_dtype(df[column]) or df[column].nunique() < 10:
+            if isinstance(df[column].dtype, pd.CategoricalDtype) or df[column].nunique() < 10:
                 user_cat_input = st.multiselect(
                     f"Values for :red[{column}]",
                     df[column].unique(),
