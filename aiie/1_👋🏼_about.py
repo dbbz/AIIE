@@ -61,29 +61,28 @@ with st.expander("", expanded=True):
         use_container_width=True,
     )
 
-# st.divider()
 
-cols = st.columns(3)
-cols[0].link_button(
-    "See the incidents",
-    "http://localhost:8501/plots",
-    use_container_width=True,
-    type="primary",
-)
-cols[1].link_button(
-    "Read the incidents",
-    "http://localhost:8501/search",
-    use_container_width=True,
-    type="primary",
-)
-cols[2].link_button(
-    "Talk to the incidents!",
-    "http://localhost:8501/",
-    use_container_width=True,
-    type="primary",
-    disabled=True,
-    help="Soon!",
-)
+# cols = st.columns(3)
+# cols[0].link_button(
+#     "See the incidents",
+#     "http://localhost:8501/plots",
+#     use_container_width=True,
+#     type="primary",
+# )
+# cols[1].link_button(
+#     "Read the incidents",
+#     "http://localhost:8501/search",
+#     use_container_width=True,
+#     type="primary",
+# )
+# cols[2].link_button(
+#     "Talk to the incidents!",
+#     "http://localhost:8501/",
+#     use_container_width=True,
+#     type="primary",
+#     disabled=True,
+#     help="Soon!",
+# )
 
 with st.sidebar.expander("Changelog", expanded=False):
     st.info("**v0.1**: AIIE launched.")
