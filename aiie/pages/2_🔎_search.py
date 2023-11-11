@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
 from data import get_clean_data
-from utils import filter_dataframe, dataframe_with_filters
+from utils import dataframe_with_filters
 
 
 st.set_page_config(
@@ -14,7 +14,6 @@ pd.options.plotting.backend = "plotly"
 
 col_1, col_2 = st.columns([5, 1])
 col_1.title("🧭 AI Incidents Explorer")
-st.divider()
 
 df, C = get_clean_data()
 
@@ -31,19 +30,6 @@ df = dataframe_with_filters(
     on_columns=[C.type, C.country, C.sector, C.technology, C.risks, C.transparency],
     use_sidebar=True,
 )
-# df
-
-# st.sidebar.download_button(
-#     "Download filtered CSV",
-#     df.to_csv().encode("utf-8"),
-#     "aiaaic_filtered.csv",
-#     "text/csv",
-# )
-
-# .style.where(
-#         lambda val: any(term in str(val) for term in search if term),
-#         "background-color: pink",
-#     ),
 
 st.data_editor(
     df,
@@ -71,13 +57,3 @@ st.data_editor(
 )
 
 col_2.metric("Total incidents displayed", df.index.size)
-
-# # Todo: filtering is not practical when too many categories and one just wants to select a few
-# # Allow the section of rows (it's hack for now)
-# df_selected = dataframe_with_selections(df, height=800)
-
-# for link in df_selected[C.summary_links]:
-#     st.write(link)
-#     if link is not None:
-#         description = scrap_incident_description(link)
-#         st.write(description)

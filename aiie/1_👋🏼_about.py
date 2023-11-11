@@ -43,22 +43,12 @@ st.success(
     icon="📄",
 )
 
-st.info(
-    """
-    **license**: CC BY-NC-SA 4.0
-    """,
-    icon="📝",
-)
-
 
 with st.expander("", expanded=True):
     cols = st.columns(5)
     cols[0].metric(":red[Total incidents]", df.index.size)
     cols[2].metric("Countries", df[C.country].nunique())
     cols[4].metric("Sectors", df[C.sector].nunique())
-    # cols[3].metric("Years", f"{df[C.occurred].min()} – {df[C.occurred].max()}")
-
-    # with st.expander("Timeline - Number of reported incidents per year", expanded=True):
 
     st.plotly_chart(
         df[C.occurred]
@@ -95,14 +85,20 @@ cols[2].link_button(
     help="Soon!",
 )
 
-with st.expander("Changelog", expanded=False):
+with st.sidebar.expander("Changelog", expanded=False):
     st.info("**v0.1**: AIIE launched.")
 
 
-st.info(
+st.sidebar.warning(
     f"""
     something broken?
     [Let me know by opening a GitHub issue!]({github_repo_url})
     """,
     icon="👾",
+)
+st.sidebar.info(
+    """
+    **license**: CC BY-NC-SA 4.0
+    """,
+    icon="📝",
 )
