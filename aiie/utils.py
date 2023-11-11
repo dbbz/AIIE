@@ -1,5 +1,5 @@
 from collections import namedtuple
-
+import numpy as np
 import pandas as pd
 import streamlit as st
 from pandas.api.types import (
@@ -8,18 +8,23 @@ from pandas.api.types import (
     is_object_dtype,
 )
 
+# TODO: put the repo url here
+github_repo_url = ""
+
 
 def named_tabs(*tab_names):
     """
     A simple pattern for "named tabs",
     this way, one can add tabs on the fly in any order.
     """
-    TabsNames = namedtuple('_', tab_names)
+    TabsNames = namedtuple("_", tab_names)
     tabs = st.tabs(TabsNames._fields)
     return TabsNames(*tabs)
 
 
-def dataframe_with_selections(df: pd.DataFrame, height:int | None = None) -> pd.DataFrame:
+def dataframe_with_selections(
+    df: pd.DataFrame, height: int | None = None
+) -> pd.DataFrame:
     """
     Adds a checkbox column at the beginning of the dataframe.
     It is a trick while Streamlit has no other way to capture the row selection event.
@@ -44,10 +49,77 @@ def dataframe_with_selections(df: pd.DataFrame, height:int | None = None) -> pd.
 
     # Filter the dataframe using the temporary column, then drop the column
     selected_rows = edited_df[edited_df.Select]
-    return selected_rows.drop('Select', axis=1)
+    return selected_rows.drop("Select", axis=1)
 
 
-def filter_dataframe(df: pd.DataFrame, use_sidebar: bool = True) -> pd.DataFrame:
+def category_text_filter(
+    df, mask, column_names, expander_label="Column filters", use_sidebar: bool = False
+) -> np.ndarray:
+    category_filters = {col: [] for col in column_names}
+
+    expander_cls = st.sidebar.expander if use_sidebar else st.expander
+    with expander_cls(expander_label, expanded=True):
+        for col in column_names:
+            counts = (
+                df.loc[mask, col]
+                .value_counts()
+                .reset_index()
+                .set_axis([col, "counts"], axis=1)
+            )
+            counts["labels"] = counts[col] + " (" + counts["counts"].astype(str) + ")"
+
+            category_filters[col] = st.multiselect(
+                col,
+                counts[col].sort_values().unique(),
+                format_func=lambda x: counts.set_index(col).loc[x, "labels"],
+                key="cat_" + col,
+            )
+
+    for col, selected_values in category_filters.items():
+        if selected_values:
+            mask = mask & df[col].isin(selected_values)
+    return mask
+
+
+def dataframe_with_filters(
+    df: pd.DataFrame, on_columns: list, use_sidebar: bool = False
+) -> pd.DataFrame:
+    mask = np.full_like(df.index, True, dtype=bool)
+
+    with st.sidebar.expander("Global filter", expanded=True):
+        search = st.text_input(
+            "Enter keywords for search",
+            help="Case-insensitive, comma-separated keywords. Prefix with ~ to exclude.",
+        )
+
+    search = [s.strip().lower() for s in search.split(",")]
+    is_excluded = [s.startswith("~") for s in search]
+
+    assert len(search) == len(is_excluded)
+
+    search = [s.lstrip("~") for s in search]
+    if search:
+        for elem, exclude in zip(search, is_excluded):
+            if elem and exclude:
+                mask &= ~df.apply(
+                    lambda row: row.astype(str).str.lower().str.contains(elem).any(),
+                    axis=1,
+                )
+            else:
+                mask &= df.apply(
+                    lambda row: row.astype(str).str.lower().str.contains(elem).any(),
+                    axis=1,
+                )
+
+    mask = category_text_filter(df, mask, on_columns, use_sidebar=use_sidebar)
+
+    df_mask = df[mask]
+    return df_mask
+
+
+def filter_dataframe(
+    df: pd.DataFrame, use_sidebar: bool = False, with_expander=False
+) -> pd.DataFrame:
     """
     Adds a UI on top of a dataframe to let viewers filter columns.
     Adapted from: https://blog.streamlit.io/make-dynamic-filters-in-streamlit-and-show-their-effects-on-the-original-dataset/
@@ -72,15 +144,24 @@ def filter_dataframe(df: pd.DataFrame, use_sidebar: bool = True) -> pd.DataFrame
             df[col] = df[col].dt.tz_localize(None)
 
     if use_sidebar:
-        modification_container = st.sidebar.expander("Filtering", expanded=True)
+        if with_expander:
+            modification_container = st.sidebar.expander("Filtering", expanded=True)
+        else:
+            modification_container = st.sidebar.container()
     else:
-        modification_container = st.expander("Filtering", expanded=True)
+        if with_expander:
+            modification_container = st.expander("Filtering", expanded=True)
+        else:
+            modification_container = st.container()
 
     with modification_container:
         to_filter_columns = st.multiselect("Filter data on", df.columns)
         for column in to_filter_columns:
             # Treat columns with < 10 unique values as categorical
-            if isinstance(df[column].dtype, pd.CategoricalDtype) or df[column].nunique() < 10:
+            if (
+                isinstance(df[column].dtype, pd.CategoricalDtype)
+                or df[column].nunique() < 10
+            ):
                 user_cat_input = st.multiselect(
                     f"Values for :red[{column}]",
                     df[column].unique(),
@@ -116,6 +197,11 @@ def filter_dataframe(df: pd.DataFrame, use_sidebar: bool = True) -> pd.DataFrame
                     f"Text search in :red[{column}]",
                 )
                 if user_text_input:
-                    df = df[df[column].astype(str).str.lower().str.contains(user_text_input.lower())]
+                    df = df[
+                        df[column]
+                        .astype(str)
+                        .str.lower()
+                        .str.contains(user_text_input.lower())
+                    ]
 
     return df

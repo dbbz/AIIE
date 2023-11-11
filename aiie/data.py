@@ -16,7 +16,7 @@ AIAAIC_SHEET_NAME = "Repository"
 # Admittedly, it could have been replaced by
 # df.columns.str.strip().str.lower().str.split('(').str[0].str.replace(r'\W', '_', regex=True)
 class C(StrEnum):
-    title = "Title"
+    title = "Headline/title"
     type = "Type"
     released = "Released"
     occurred = "Occurred"
@@ -67,7 +67,20 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
         .drop(columns=cols_to_drop)
         .rename(columns=lambda x: x.strip())
     )
+
+    # quick check that the column names did not change in the source repo
+    original_column_names = df.columns.to_list()
+    new_column_names = list(map(str, C))
+
+    if original_column_names != new_column_names:
+        st.toast(
+            "Some columns appear to have changed in the AIAAIC repository, hence some parts of this app might not work properly."
+        )
+
     df[C.country] = df[C.country].str.replace(";", ",")
+    df[C.transparency] = df[C.transparency].str.replace(";", ",")
+    df[C.risks] = df[C.risks].str.replace(";", ",")
+    df[C.technology] = df[C.technology].str.replace(";", ",")
 
     # convert the years to Int16 (i.e. int16 with a None option)
     int_columns = {C.released, C.occurred}
@@ -75,9 +88,9 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
         df[col] = df[col].astype("Int16")
 
     # handle the categorical columns
-    cat_columns = {C.type, C.country, C.sector, C.technology}
-    for col in cat_columns:
-        df[col] = df[col].astype("category")
+    cat_columns = {C.type, C.country, C.sector, C.technology, C.risks, C.transparency}
+    # for col in cat_columns:
+    #     df[col] = df[col].astype("category")
 
     # convert to string (better than the `object` type)
     str_columns = set(df.columns.to_list()) - int_columns - cat_columns
@@ -90,6 +103,21 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
 def get_clean_data():
     df = read_gsheet(AIAAIC_SHEET_ID, AIAAIC_SHEET_NAME)
     df = clean_data(df)
+
+    # remove hidden columns
+    df = df.drop(
+        columns=[
+            C.external_harms_individual,
+            C.societal,
+            C.environmental,
+            C.internal_harms_strategic_reputational,
+            C.operational,
+            C.financial,
+            C.legal_regulatory,
+        ]
+    )
+
     st.session_state["data"] = df
     st.session_state["columns"] = C
+
     return df, C
