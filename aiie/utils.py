@@ -4,7 +4,8 @@ import pandas as pd
 import streamlit as st
 
 # TODO: put the repo url here
-github_repo_url = ""
+github_repo_url = "https://github.com/dbbz/AIIE/issues"
+deploy_url = "https://aiiexp.streamlit.app/"
 
 
 def named_tabs(*tab_names):

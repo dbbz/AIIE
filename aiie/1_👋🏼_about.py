@@ -2,7 +2,7 @@ import pandas as pd
 
 import streamlit as st
 from data import get_clean_data
-from utils import github_repo_url
+from utils import github_repo_url, deploy_url
 
 pd.options.plotting.backend = "plotly"
 st.set_page_config(
@@ -65,19 +65,19 @@ with st.expander("", expanded=True):
 cols = st.columns(3)
 cols[0].link_button(
     "See the incidents",
-    "http://localhost:8501/plots",
+    f"{deploy_url}plots",
     use_container_width=True,
     type="primary",
 )
 cols[1].link_button(
     "Read the incidents",
-    "http://localhost:8501/search",
+    f"{deploy_url}search",
     use_container_width=True,
     type="primary",
 )
 cols[2].link_button(
     "Talk to the incidents!",
-    "http://localhost:8501/",
+    f"{deploy_url}",
     use_container_width=True,
     type="primary",
     disabled=True,
