@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
 from data import get_clean_data
-from utils import dataframe_with_filters
+from utils import dataframe_with_filters, add_logo
 
 
 st.set_page_config(
@@ -10,7 +10,9 @@ st.set_page_config(
     page_icon="🔎",
     initial_sidebar_state="expanded",
 )
+add_logo("img/logo.png", 60)
 pd.options.plotting.backend = "plotly"
+
 
 col_1, col_2 = st.columns([5, 1])
 col_1.title("🧭 AI Incidents Explorer")
