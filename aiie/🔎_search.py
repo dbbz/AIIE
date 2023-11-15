@@ -10,7 +10,7 @@ st.set_page_config(
     page_icon="🔎",
     initial_sidebar_state="expanded",
 )
-add_logo("img/logo.png", 60)
+add_logo("img/logo.png", 90)
 pd.options.plotting.backend = "plotly"
 
 
