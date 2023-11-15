@@ -1,4 +1,6 @@
+import base64
 from collections import namedtuple
+from pathlib import Path
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -6,6 +8,33 @@ import streamlit as st
 # TODO: put the repo url here
 github_repo_url = "https://github.com/dbbz/AIIE/issues"
 deploy_url = "https://aiiexp.streamlit.app/"
+
+
+# this function comes from Streamlit-Extra
+def add_logo(logo_url: str, height: int = 120):
+    """Add a logo (from logo_url) on the top of the navigation page of a multipage app.
+    Taken from [the Streamlit forum](https://discuss.streamlit.io/t/put-logo-and-title-above-on-top-of-page-navigation-in-sidebar-of-multipage-app/28213/6)
+    The url should be a local path to the image.
+
+    Args:
+        logo_url (str): URL/local path of the logo
+    """
+
+    logo = f"url(data:image/png;base64,{base64.b64encode(Path(logo_url).read_bytes()).decode()})"
+
+    st.markdown(
+        f"""
+        <style>
+            [data-testid="stSidebarNav"] {{
+                background-image: {logo};
+                background-repeat: no-repeat;
+                padding-top: {height}px;
+                background-position: 20px 20px;
+            }}
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def named_tabs(*tab_names):

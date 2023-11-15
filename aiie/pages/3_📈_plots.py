@@ -7,6 +7,7 @@ from utils import (
     _df_groupby,
     gen_sankey,
     plot_counts,
+    add_logo,
 )
 import plotly.express as px
 import numpy as np
@@ -20,6 +21,7 @@ st.set_page_config(
     page_icon="📈",
     initial_sidebar_state="expanded",
 )
+add_logo("img/logo.png", 60)
 
 df, C = get_clean_data()
 
