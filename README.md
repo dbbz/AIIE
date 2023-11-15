@@ -1,3 +1,5 @@
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://aiiexp.streamlit.app)
+
 # AI Incidents Explorer
 
 ## A Streamlit app to learn more about AI incidents globally
