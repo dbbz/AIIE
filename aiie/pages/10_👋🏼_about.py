@@ -89,6 +89,13 @@ with st.expander("", expanded=True):
 with st.sidebar.expander("Changelog", expanded=False):
     st.info("**v0.1**: AIIE launched.")
 
+st.link_button(
+    "Column descriptions",
+    "https://www.aiaaic.org/aiaaic-repository/classifications-and-definitions#h.fyaxuf7wldm7",
+    use_container_width=True,
+    type="secondary",
+)
+
 
 st.sidebar.warning(
     f"""

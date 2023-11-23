@@ -183,6 +183,13 @@ with st.expander("🤓 Variables interactions (Sankey) ✨", expanded=False):
         st.plotly_chart(fig, use_container_width=True)
 
 
+with st.expander("Map"):
+    df = pd.DataFrame(
+        np.random.randn(1000, 2) / [50, 50] + [37.76, -122.4], columns=["lat", "lon"]
+    )
+
+    st.map(df)
+
 st.sidebar.info(
     f"""
     Want to see another plot in particular?

@@ -4,6 +4,11 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import streamlit as st
+from pandas.api.types import (
+    is_datetime64_any_dtype,
+    is_numeric_dtype,
+    is_object_dtype,
+)
 
 # TODO: put the repo url here
 github_repo_url = "https://github.com/dbbz/AIIE/issues"
@@ -57,27 +62,44 @@ def category_text_filter(
     expander_cls = st.sidebar.expander if use_sidebar else st.expander
     with expander_cls(expander_label, expanded=True):
         for col in column_names:
-            counts = (
-                df.loc[mask, col]
-                .value_counts()
-                .reset_index()
-                .set_axis([col, "counts"], axis=1)
-            )
-            counts["labels"] = counts[col] + " (" + counts["counts"].astype(str) + ")"
+            if is_numeric_dtype(df[col]):
+                min_value = df.loc[mask, col].min()
+                max_value = df.loc[mask, col].max()
 
-            category_filters[col] = st.multiselect(
-                col,
-                counts[col].sort_values().unique(),
-                format_func=lambda x: counts.set_index(col).loc[x, "labels"],
-                key="cat_" + col,
-            )
-            if category_filters[col]:
-                mask = mask & df[col].isin(category_filters[col])
+                min_max = st.slider(
+                    col,
+                    min_value=min_value,
+                    max_value=max_value,
+                    value=(min_value, max_value),
+                )
+                mask = mask & df[col].between(*min_max)
+            else:
+                counts = (
+                    df.loc[mask, col]
+                    .value_counts(dropna=True)
+                    .reset_index()
+                    .set_axis([col, "counts"], axis=1)
+                )
+                counts["labels"] = (
+                    counts[col] + " (" + counts["counts"].astype(str) + ")"
+                )
+
+                category_filters[col] = st.multiselect(
+                    col,
+                    counts[col].sort_values().unique(),
+                    format_func=lambda x: counts.set_index(col).loc[x, "labels"],
+                    key="cat_" + col,
+                )
+                if category_filters[col]:
+                    mask = mask & df[col].isin(category_filters[col])
 
     # for col, selected_values in category_filters.items():
     #     if selected_values:
     #         mask = mask & df[col].isin(selected_values)
     return mask
+
+
+# TODO: add sliders for numerical columns
 
 
 def dataframe_with_filters(
