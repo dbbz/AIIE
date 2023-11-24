@@ -76,10 +76,12 @@ def category_text_filter(
             else:
                 counts = (
                     df.loc[mask, col]
-                    .value_counts(dropna=True)
+                    .value_counts(dropna=False)
                     .reset_index()
                     .set_axis([col, "counts"], axis=1)
                 )
+                # counts.fillna("Unknown", inplace=True)
+                # st.sidebar.write(counts)
                 counts["labels"] = (
                     counts[col] + " (" + counts["counts"].astype(str) + ")"
                 )
@@ -120,9 +122,9 @@ def dataframe_with_filters(
     """
     mask = np.full_like(df.index, True, dtype=bool)
 
-    with st.sidebar.expander("Global filter", expanded=True):
+    with st.sidebar.expander("Global text filter", expanded=True):
         search = st.text_input(
-            "Enter keywords for search",
+            "Enter comma-separated keywords",
             help="Case-insensitive, comma-separated keywords. Prefix with ~ to exclude.",
         )
 
@@ -154,7 +156,10 @@ def dataframe_with_filters(
 @st.cache_data
 def retain_most_frequent_values(df: pd.DataFrame, col: str, N: int) -> pd.DataFrame:
     top_N_values = (
-        df[col].value_counts(sort=True, ascending=True).iloc[-N:].index.to_list()
+        df[col]
+        .value_counts(sort=True, ascending=True, dropna=True)
+        .iloc[-N:]
+        .index.to_list()
     )
     return df[df[col].isin(top_N_values)]
 

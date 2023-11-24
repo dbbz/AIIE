@@ -13,15 +13,33 @@ st.set_page_config(
 add_logo("img/logo.png", 90)
 pd.options.plotting.backend = "plotly"
 
+query_parameters = st.experimental_get_query_params()
 
 col_1, col_2 = st.columns([5, 1])
 col_1.title("🧭 AI Incidents Explorer")
 
 df, C = get_clean_data()
 
+# columns_to_plot = list(map(str, C))  # get all the column names
+columns_to_plot = [
+    C.country,
+    C.type,
+    C.sector,
+    C.developer,
+    C.technology,
+    C.risks,
+    C.transparency,
+    C.media_trigger,
+    C.developer,
+    C.operator,
+    C.purpose,
+]
 
-columns_to_plot = list(map(str, C))  # get all the column names
-columns_to_plot = st.sidebar.multiselect("Plotted", columns_to_plot, [C.country])
+default_value = query_parameters.get("plotted", C.country)
+columns_to_plot = st.sidebar.multiselect("Plotted", columns_to_plot, default_value)
+
+if st.sidebar.button("Save"):
+    st.experimental_set_query_params(plotted=columns_to_plot)
 
 # Display the filtering widgets
 df = dataframe_with_filters(
