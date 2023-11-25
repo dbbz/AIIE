@@ -35,94 +35,7 @@ df = dataframe_with_filters(
 )
 
 
-with st.expander(f"🔔 Top {top_N} incidents rankings ✨"):
-    tabs = st.tabs(["by AI developers", "by countries", "by sectors", "by risk"])
-    with tabs[0]:
-        question = f"#### What are the top {top_N} AI developers involved in incidents?"
-        st.markdown(question)
-        plot_counts(df, C.developer, top_N)
-
-    with tabs[1]:
-        question = f"#### What are the top {top_N} countries related to AI incidents?"
-        st.markdown(question)
-        plot_counts(df, C.country, top_N)
-
-    with tabs[2]:
-        question = f"#### What are the top {top_N} sectors involving AI incidents?"
-        st.markdown(question)
-        plot_counts(df, C.sector, top_N)
-
-    with tabs[3]:
-        question = f"#### What are the top {top_N} risks?"
-        st.markdown(question)
-        plot_counts(df, C.risks, top_N)
-
-
-# ---- Plotting things against time
-
-with st.expander("⏳ Timelines ✨"):
-    st.markdown("#### How is the evolution over the years?")
-
-    st.plotly_chart(
-        df[C.occurred]
-        .value_counts()
-        .rename("Incidents")
-        .sort_index()
-        .rename_axis(index="Year")
-        .plot.area(line_shape="spline")
-        .update_layout(showlegend=False),
-        use_container_width=True,
-    )
-
-    st.markdown("#### What about emerging actors?")
-
-    columns_for_timeline = [C.developer, C.risks, C.sector]
-    tabs = st.tabs(["AI developers", "Risks", "Sectors"])
-    for col_to_plot, tab in zip(columns_for_timeline, tabs):
-        df_filtered = retain_most_frequent_values(df, col_to_plot, int(top_N))
-        with tab:
-            df_gr = (
-                df_filtered.groupby([C.occurred, col_to_plot])
-                .size()
-                .to_frame(name="counts")
-                .reset_index()
-                .sort_values(by="counts", ascending=False)
-            )
-
-            col_1, col_2 = st.columns(2)
-
-            with col_1:
-                st.markdown("#### Counts")
-                st.plotly_chart(
-                    px.area(
-                        df_gr,
-                        x=C.occurred,
-                        y="counts",
-                        color=col_to_plot,
-                        hover_name=col_to_plot,
-                        log_y=False,
-                        line_shape="spline",
-                    ).update_layout(showlegend=False),
-                    use_container_width=True,
-                )
-
-            with col_2:
-                st.markdown("#### Fractions")
-                st.plotly_chart(
-                    px.area(
-                        df_gr,
-                        x=C.occurred,
-                        y="counts",
-                        color=col_to_plot,
-                        hover_name=col_to_plot,
-                        groupnorm="percent",
-                        line_shape="spline",
-                    ),
-                    use_container_width=True,
-                )
-
-
-with st.expander("🤓 Variables interactions (Sankey) ✨", expanded=False):
+with st.expander("🤓 Variables interactions (Sankey) ✨", expanded=True):
     columns_to_plot = [
         C.sector,
         C.type,
@@ -183,12 +96,92 @@ with st.expander("🤓 Variables interactions (Sankey) ✨", expanded=False):
         st.plotly_chart(fig, use_container_width=True)
 
 
-with st.expander("Map"):
-    df = pd.DataFrame(
-        np.random.randn(1000, 2) / [50, 50] + [37.76, -122.4], columns=["lat", "lon"]
+with st.expander(f"🔔 Top {top_N} incidents rankings ✨", expanded=True):
+    tabs = st.tabs(["by AI developers", "by countries", "by sectors", "by risk"])
+    with tabs[0]:
+        question = f"#### What are the top {top_N} AI developers involved in incidents?"
+        st.markdown(question)
+        plot_counts(df, C.developer, top_N)
+
+    with tabs[1]:
+        question = f"#### What are the top {top_N} countries related to AI incidents?"
+        st.markdown(question)
+        plot_counts(df, C.country, top_N)
+
+    with tabs[2]:
+        question = f"#### What are the top {top_N} sectors involving AI incidents?"
+        st.markdown(question)
+        plot_counts(df, C.sector, top_N)
+
+    with tabs[3]:
+        question = f"#### What are the top {top_N} risks?"
+        st.markdown(question)
+        plot_counts(df, C.risks, top_N)
+
+
+# ---- Plotting things against time
+
+with st.expander("⏳ Timelines ✨", expanded=True):
+    st.markdown("#### How is the evolution over the years?")
+
+    st.plotly_chart(
+        df[C.occurred]
+        .value_counts()
+        .rename("Incidents")
+        .sort_index()
+        .rename_axis(index="Year")
+        .plot.area(line_shape="spline")
+        .update_layout(showlegend=False),
+        use_container_width=True,
     )
 
-    st.map(df)
+    st.markdown("#### What about emerging actors?")
+
+    columns_for_timeline = [C.developer, C.risks, C.sector]
+    tabs = st.tabs(["AI developers", "Risks", "Sectors"])
+    for col_to_plot, tab in zip(columns_for_timeline, tabs):
+        df_filtered = retain_most_frequent_values(df, col_to_plot, int(top_N))
+        with tab:
+            df_gr = (
+                df_filtered.groupby([C.occurred, col_to_plot])
+                .size()
+                .to_frame(name="counts")
+                .reset_index()
+                .sort_values(by="counts", ascending=False)
+            )
+
+            col_1, col_2 = st.columns(2)
+
+            with col_1:
+                st.markdown("#### Counts")
+                st.plotly_chart(
+                    px.area(
+                        df_gr,
+                        x=C.occurred,
+                        y="counts",
+                        color=col_to_plot,
+                        hover_name=col_to_plot,
+                        log_y=False,
+                        line_shape="spline",
+                    ).update_layout(showlegend=False),
+                    use_container_width=True,
+                )
+
+            with col_2:
+                st.markdown("#### Fractions")
+                st.plotly_chart(
+                    px.area(
+                        df_gr,
+                        x=C.occurred,
+                        y="counts",
+                        color=col_to_plot,
+                        hover_name=col_to_plot,
+                        groupnorm="percent",
+                        line_shape="spline",
+                    ),
+                    use_container_width=True,
+                )
+
 
 st.sidebar.info(
     f"""

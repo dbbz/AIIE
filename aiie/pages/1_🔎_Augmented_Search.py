@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
 from data import get_clean_data
-from utils import dataframe_with_filters, add_logo
+from utils import dataframe_with_filters, add_logo, retain_most_frequent_values
 
 
 st.set_page_config(
@@ -35,11 +35,21 @@ columns_to_plot = [
     C.purpose,
 ]
 
-default_value = query_parameters.get("plotted", C.country)
-columns_to_plot = st.sidebar.multiselect("Plotted", columns_to_plot, default_value)
+with st.sidebar.expander("Plotting", expanded=True):
+    default_value = query_parameters.get("Columns", C.country)
+    columns_to_plot = st.multiselect(
+        "Columns",
+        columns_to_plot,
+        default_value,
+        label_visibility="collapsed",
+    )
+    # top_N = st.number_input("Number of top values to show", 0, 20, 10)
+    top_N = st.select_slider(
+        "Show most frequent...", [5, 10, 15, 20, 25, 30, 40, 50, "all"], 25
+    )
 
-if st.sidebar.button("Save"):
-    st.experimental_set_query_params(plotted=columns_to_plot)
+# if st.sidebar.button("Save"):
+#     st.experimental_set_query_params(plotted=columns_to_plot)
 
 # Display the filtering widgets
 df = dataframe_with_filters(
@@ -61,8 +71,12 @@ df = dataframe_with_filters(
 if columns_to_plot:
     tabs = st.tabs(columns_to_plot)
     for i, col in enumerate(columns_to_plot):
+        if top_N != "all":
+            df_filtered = retain_most_frequent_values(df, col, int(top_N))
+        else:
+            df_filtered = df
         count_plot = (
-            df[col]
+            df_filtered[col]
             .value_counts(sort=True, ascending=True)
             .to_frame(name="count")
             .plot(kind="barh")
