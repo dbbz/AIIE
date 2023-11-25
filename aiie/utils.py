@@ -4,6 +4,11 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import streamlit as st
+from pandas.api.types import (
+    is_datetime64_any_dtype,
+    is_numeric_dtype,
+    is_object_dtype,
+)
 
 # TODO: put the repo url here
 github_repo_url = "https://github.com/dbbz/AIIE/issues"
@@ -50,34 +55,53 @@ def named_tabs(*tab_names):
 # TODO: replace this filter with an event-based filtering + state management
 # TODO: include nans too
 def category_text_filter(
-    df, mask, column_names, expander_label="Column filters", use_sidebar: bool = False
+    df, mask, column_names, expander_label="Category filters", use_sidebar: bool = False
 ) -> np.ndarray:
     category_filters = {col: [] for col in column_names}
 
     expander_cls = st.sidebar.expander if use_sidebar else st.expander
     with expander_cls(expander_label, expanded=True):
         for col in column_names:
-            counts = (
-                df.loc[mask, col]
-                .value_counts()
-                .reset_index()
-                .set_axis([col, "counts"], axis=1)
-            )
-            counts["labels"] = counts[col] + " (" + counts["counts"].astype(str) + ")"
+            if is_numeric_dtype(df[col]):
+                min_value = df.loc[mask, col].min()
+                max_value = df.loc[mask, col].max()
 
-            category_filters[col] = st.multiselect(
-                col,
-                counts[col].sort_values().unique(),
-                format_func=lambda x: counts.set_index(col).loc[x, "labels"],
-                key="cat_" + col,
-            )
-            if category_filters[col]:
-                mask = mask & df[col].isin(category_filters[col])
+                min_max = st.slider(
+                    col,
+                    min_value=min_value,
+                    max_value=max_value,
+                    value=(min_value, max_value),
+                )
+                mask = mask & df[col].between(*min_max)
+            else:
+                counts = (
+                    df.loc[mask, col]
+                    .value_counts(dropna=False)
+                    .reset_index()
+                    .set_axis([col, "counts"], axis=1)
+                )
+                # counts.fillna("Unknown", inplace=True)
+                # st.sidebar.write(counts)
+                counts["labels"] = (
+                    counts[col] + " (" + counts["counts"].astype(str) + ")"
+                )
+
+                category_filters[col] = st.multiselect(
+                    col,
+                    counts[col].sort_values().unique(),
+                    format_func=lambda x: counts.set_index(col).loc[x, "labels"],
+                    key="cat_" + col,
+                )
+                if category_filters[col]:
+                    mask = mask & df[col].isin(category_filters[col])
 
     # for col, selected_values in category_filters.items():
     #     if selected_values:
     #         mask = mask & df[col].isin(selected_values)
     return mask
+
+
+# TODO: add sliders for numerical columns
 
 
 def dataframe_with_filters(
@@ -98,9 +122,9 @@ def dataframe_with_filters(
     """
     mask = np.full_like(df.index, True, dtype=bool)
 
-    with st.sidebar.expander("Global filter", expanded=True):
+    with st.sidebar.expander("Global text filter", expanded=True):
         search = st.text_input(
-            "Enter keywords for search",
+            "Enter comma-separated keywords",
             help="Case-insensitive, comma-separated keywords. Prefix with ~ to exclude.",
         )
 
@@ -132,7 +156,10 @@ def dataframe_with_filters(
 @st.cache_data
 def retain_most_frequent_values(df: pd.DataFrame, col: str, N: int) -> pd.DataFrame:
     top_N_values = (
-        df[col].value_counts(sort=True, ascending=True).iloc[-N:].index.to_list()
+        df[col]
+        .value_counts(sort=True, ascending=True, dropna=True)
+        .iloc[-N:]
+        .index.to_list()
     )
     return df[df[col].isin(top_N_values)]
 
