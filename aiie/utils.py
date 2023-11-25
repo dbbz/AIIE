@@ -55,7 +55,7 @@ def named_tabs(*tab_names):
 # TODO: replace this filter with an event-based filtering + state management
 # TODO: include nans too
 def category_text_filter(
-    df, mask, column_names, expander_label="Column filters", use_sidebar: bool = False
+    df, mask, column_names, expander_label="Category filters", use_sidebar: bool = False
 ) -> np.ndarray:
     category_filters = {col: [] for col in column_names}
 
