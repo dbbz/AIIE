@@ -87,6 +87,7 @@ with st.expander("", expanded=True):
 # )
 
 with st.sidebar.expander("Changelog", expanded=False):
+    st.info("**v0.2**: Search and plotting combined.")
     st.info("**v0.1**: AIIE launched.")
 
 st.link_button(
@@ -104,6 +105,14 @@ st.sidebar.warning(
     """,
     icon="👾",
 )
+
+st.sidebar.warning(
+    f"""
+    This is still experimental and bugs are likely to exist. Please use with caution and scrupulously verify your analyses.
+    """,
+    icon="⚠️",
+)
+
 st.sidebar.info(
     """
     **license**: CC BY-NC-SA 4.0

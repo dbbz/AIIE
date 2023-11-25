@@ -35,67 +35,6 @@ df = dataframe_with_filters(
 )
 
 
-with st.expander("🤓 Variables interactions (Sankey) ✨", expanded=True):
-    columns_to_plot = [
-        C.sector,
-        C.type,
-        C.technology,
-        C.risks,
-        C.country,
-        C.operator,
-        C.transparency,
-    ]
-
-    sankey_vars = st.multiselect(
-        "Choose at least two columns to plot",
-        columns_to_plot,
-        default=columns_to_plot[:2],
-        max_selections=4,
-        help="💡 Use the left sidebar to add filters. ",
-    )
-    st.info(
-        "Use the text filters on the sidebar for more precision and clarify.",
-        icon="💡",
-    )
-    if sankey_vars:
-        st.sidebar.markdown("#### Sankey plot controls")
-    text_filters = {}
-    with st.sidebar.expander("Sankey text filters", expanded=True):
-        for col in sankey_vars:
-            text_filters[col] = st.text_input(
-                col,
-                key="text_" + col,
-                help="Case-insensitive text filtering.",
-            )
-
-    # with st.sidebar.expander("Other filters", expanded=False):
-    #     for col in columns_to_plot:
-    #         if col not in sankey_vars:
-    #             text_filters[col] = st.text_input(
-    #                 col,
-    #                 key="text_" + col,
-    #             )
-
-    if len(sankey_vars) == 1:
-        st.warning("Select a second column to plot.", icon="⚠️")
-
-    mask = np.full_like(df.index, True, dtype=bool)
-    for col, filered_text in text_filters.items():
-        if filered_text.strip():
-            mask = mask & df[col].str.lower().str.contains(filered_text.lower())
-
-    if len(sankey_vars) > 1:
-        df_mask = df[mask]
-        df_sankey = _df_groupby(df_mask, sankey_vars)
-        fig = gen_sankey(
-            df_sankey,
-            sankey_vars,
-            "counts",
-            " - ".join(sankey_vars),
-        )
-        st.plotly_chart(fig, use_container_width=True)
-
-
 with st.expander(f"🔔 Top {top_N} incidents rankings ✨", expanded=True):
     tabs = st.tabs(["by AI developers", "by countries", "by sectors", "by risk"])
     with tabs[0]:
@@ -182,6 +121,66 @@ with st.expander("⏳ Timelines ✨", expanded=True):
                     use_container_width=True,
                 )
 
+
+with st.expander("🤓 Variables interactions (Sankey) ✨", expanded=True):
+    columns_to_plot = [
+        C.sector,
+        C.type,
+        C.technology,
+        C.risks,
+        C.country,
+        C.operator,
+        C.transparency,
+    ]
+
+    sankey_vars = st.multiselect(
+        "Choose at least two columns to plot",
+        columns_to_plot,
+        default=columns_to_plot[:2],
+        max_selections=4,
+        help="💡 Use the left sidebar to add filters. ",
+    )
+    st.info(
+        "Use the text filters on the sidebar for more precision and clarify.",
+        icon="💡",
+    )
+    if sankey_vars:
+        st.sidebar.markdown("#### Sankey plot controls")
+    text_filters = {}
+    with st.sidebar.expander("Sankey text filters", expanded=True):
+        for col in sankey_vars:
+            text_filters[col] = st.text_input(
+                col,
+                key="text_" + col,
+                help="Case-insensitive text filtering.",
+            )
+
+    # with st.sidebar.expander("Other filters", expanded=False):
+    #     for col in columns_to_plot:
+    #         if col not in sankey_vars:
+    #             text_filters[col] = st.text_input(
+    #                 col,
+    #                 key="text_" + col,
+    #             )
+
+    if len(sankey_vars) == 1:
+        st.warning("Select a second column to plot.", icon="⚠️")
+
+    mask = np.full_like(df.index, True, dtype=bool)
+    for col, filered_text in text_filters.items():
+        if filered_text.strip():
+            mask = mask & df[col].str.lower().str.contains(filered_text.lower())
+
+    if len(sankey_vars) > 1:
+        df_mask = df[mask]
+        df_sankey = _df_groupby(df_mask, sankey_vars)
+        fig = gen_sankey(
+            df_sankey,
+            sankey_vars,
+            "counts",
+            " - ".join(sankey_vars),
+        )
+        st.plotly_chart(fig, use_container_width=True)
 
 st.sidebar.info(
     f"""
