@@ -87,6 +87,8 @@ with st.expander("", expanded=True):
 # )
 
 with st.sidebar.expander("Changelog", expanded=False):
+    st.info("**v0.4**: Topic analysis added.")
+    st.info("**v0.3**: Sankey plots added.")
     st.info("**v0.2**: Search and plotting combined.")
     st.info("**v0.1**: AIIE launched.")
 

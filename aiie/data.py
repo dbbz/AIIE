@@ -93,6 +93,7 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     #     df[col] = df[col].astype("category")
 
     # convert to string (better than the `object` type)
+
     str_columns = set(df.columns.to_list()) - int_columns  # - cat_columns
     for col in str_columns:
         df[col] = df[col].astype("string").fillna("Unknown")
@@ -121,3 +122,7 @@ def get_clean_data():
     st.session_state["columns"] = C
 
     return df, C
+
+
+def prepare_topic_analysis(df, description):
+    pass
