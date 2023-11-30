@@ -67,7 +67,7 @@ with st.sidebar.expander("Plotting", expanded=True):
 
     cols = st.columns(2)
     enable_sankey = cols[0].toggle("Sankey plot", False)
-    enable_topic_modeling = cols[1].toggle("Topic analysis", False)
+    enable_topic_modeling = cols[1].toggle("Topic analysis", False, disabled=True)
 
     n_components = 9
     if enable_topic_modeling:
