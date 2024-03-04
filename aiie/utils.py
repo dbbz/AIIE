@@ -101,8 +101,6 @@ def category_text_filter(
     return mask
 
 
-# TODO: add sliders for numerical columns
-
 
 def dataframe_with_filters(
     df: pd.DataFrame,

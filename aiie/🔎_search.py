@@ -4,11 +4,9 @@ import streamlit as st
 from data import get_clean_data
 from utils import (
     dataframe_with_filters,
-    github_repo_url,
     retain_most_frequent_values,
     _df_groupby,
     gen_sankey,
-    plot_counts,
     add_logo,
 )
 import shelve
@@ -25,15 +23,12 @@ st.set_page_config(
 add_logo("img/logo.png", 90)
 pd.options.plotting.backend = "plotly"
 
-query_parameters = st.experimental_get_query_params()
-
 col_1, col_2 = st.columns([5, 1])
 col_1.title("🧭 AI Incidents Explorer")
 
 df, C = get_clean_data()
-table_height = 400
 
-# columns_to_plot = list(map(str, C))  # get all the column names
+# The list of possible columns to plot
 available_columns_to_plot = [
     C.country,
     C.type,
@@ -50,11 +45,10 @@ available_columns_to_plot = [
 
 
 with st.sidebar.expander("Plotting", expanded=True):
-    default_value = query_parameters.get("Columns", C.country)
     columns_to_plot = st.multiselect(
         "Columns",
         available_columns_to_plot,
-        default_value,
+        C.country,
         label_visibility="collapsed",
     )
     # top_N = st.number_input("Number of top values to show", 0, 20, 10)
@@ -96,11 +90,10 @@ df = dataframe_with_filters(
     use_sidebar=True,
 )
 
-
 st.data_editor(
     df,
     use_container_width=True,
-    height=table_height,
+    height=400,
     hide_index=True,
     disabled=True,
     column_config={
@@ -125,7 +118,6 @@ st.data_editor(
 col_2.metric("Total incidents displayed", df.index.size)
 
 if tabs_names:
-    table_height = 600
     plots_tabs = st.tabs(tabs_names)
     for i, col in enumerate(tabs_names):
         if col == "Sankey plot":

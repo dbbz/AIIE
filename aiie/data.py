@@ -23,27 +23,34 @@ class C(StrEnum):
     country = "Country(ies)"
     sector = "Sector(s)"
     operator = "Operator(s)"
-    developer = "Developer(s)"
+    developer = "Deployer(s)"
     system_name = "System name(s)"
     technology = "Technology(ies)"
     purpose = "Purpose(s)"
     media_trigger = "Media trigger(s)"
-    risks = "Risks(s)"
+    risks = "Issue(s)"
     transparency = "Transparency"
     external_harms_individual = "External harms Individual"
-    societal = "Societal"
-    environmental = "Environmental"
+    external_harms_societal = "External harms Societal"
+    external_harms_environmental = "External harms Environmental"
     internal_harms_strategic_reputational = "Internal harms Strategic/reputational"
-    operational = "Operational"
-    financial = "Financial"
-    legal_regulatory = "Legal/regulatory"
+    internal_harms_strategic_operational = "Internal harms Operational"
+    internal_harms_strategic_financial = "Internal harms Financial"
+    internal_harms_strategic_Legal = "Internal harms Legal/regulatory"
+    # operational = "Operational"
+    # financial = "Financial"
+    # societal = "Societal"
+    # environmental = "Environmental"
+    # legal_regulatory = "Legal/regulatory"
     summary_links = "Description/links"
 
 
-@st.cache_data(show_spinner="Fetchez la data... 🐮")
+# @st.cache_data(show_spinner="Fetchez la data... 🐮")
 def read_gsheet(sheet_id: str, sheet_name: str) -> pd.DataFrame:
     url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&sheet={sheet_name}"
-    return pd.read_csv(url).dropna(how="all")
+    return pd.read_csv(url, header=0, skiprows=[0, 2], skip_blank_lines=True).dropna(
+        how="all"
+    )
 
 
 @st.cache_data(show_spinner="Fetching more information about the incident...")
@@ -76,7 +83,6 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
         st.toast(
             "Some columns appear to have changed in the AIAAIC repository, hence some parts of this app might not work properly."
         )
-
     df[C.country] = df[C.country].str.replace(";", ",")
     df[C.transparency] = df[C.transparency].str.replace(";", ",")
     df[C.risks] = df[C.risks].str.replace(";", ",")
@@ -85,7 +91,10 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     # convert the years to Int16 (i.e. int16 with a None option)
     int_columns = {C.released, C.occurred}
     for col in int_columns:
-        df[col] = df[col].astype("Int16")
+        df[col] = df[col].astype(str).str.split(";").str[0]
+        df[col] = df[col].astype(str).str.split("-").str[0]
+
+        # df[col] = df[col].astype("Int64")
 
     # handle the categorical columns
     # cat_columns = {C.type, C.country, C.sector, C.technology, C.risks, C.transparency}
@@ -102,19 +111,19 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def get_clean_data():
-    df = read_gsheet(AIAAIC_SHEET_ID, AIAAIC_SHEET_NAME)
+    # df = read_gsheet(AIAAIC_SHEET_ID, AIAAIC_SHEET_NAME)
+    df = pd.read_csv("repository.csv").dropna(how="all")
     df = clean_data(df)
-
     # remove hidden columns
     df = df.drop(
         columns=[
             C.external_harms_individual,
-            C.societal,
-            C.environmental,
+            C.external_harms_societal,
+            C.external_harms_environmental,
             C.internal_harms_strategic_reputational,
-            C.operational,
-            C.financial,
-            C.legal_regulatory,
+            C.internal_harms_strategic_operational,
+            C.internal_harms_strategic_financial,
+            C.internal_harms_strategic_Legal,
         ]
     )
 
