@@ -5,12 +5,12 @@ from data import get_clean_data
 from utils import github_repo_url, deploy_url, add_logo
 
 pd.options.plotting.backend = "plotly"
-st.set_page_config(
-    page_title="AIIA - About",
-    layout="centered",
-    page_icon="img/logo.png",
-    initial_sidebar_state="expanded",
-)
+#st.set_page_config(
+#    page_title="AIIA - About",
+#    layout="centered",
+#    page_icon="img/logo.png",
+#    initial_sidebar_state="expanded",
+#)
 add_logo("img/logo.png", 90)
 
 

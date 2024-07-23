@@ -9,7 +9,7 @@ from pandas.api.types import (
     is_numeric_dtype,
     is_object_dtype,
 )
-
+import plotly.express as px
 # TODO: put the repo url here
 github_repo_url = "https://github.com/dbbz/AIIE/issues"
 deploy_url = "https://aiiexp.streamlit.app/"
@@ -163,17 +163,20 @@ def retain_most_frequent_values(df: pd.DataFrame, col: str, N: int) -> pd.DataFr
 
 
 def plot_counts(df, column, top_N):
+    # This retains only the top N values of the column based on frequency
     df_filtered = retain_most_frequent_values(df, column, top_N)
-    df_counts = (
-        df_filtered[column]
-        .value_counts(sort=True, ascending=True)
-        .to_frame(name="count")
-    )
-    st.plotly_chart(
-        df_counts.plot(kind="barh").update_layout(showlegend=False),
-        use_container_width=True,
-    )
 
+    # Generate the counts
+    df_counts = df_filtered[column].value_counts().reset_index()
+    df_counts.columns = [column, 'count']
+
+    # Sort the DataFrame by count to plot
+    df_counts = df_counts.sort_values(by='count', ascending=True)
+
+    # Creating a Plotly bar chart
+    fig = px.bar(df_counts, x='count', y=column, orientation='h',
+                 title=f"Top {top_N} {column} by count")
+    st.plotly_chart(fig, use_container_width=True)
 
 @st.cache_data
 def _df_groupby(df, cols):

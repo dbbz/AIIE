@@ -109,7 +109,6 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
 
     return df
 
-
 def get_clean_data():
     # df = read_gsheet(AIAAIC_SHEET_ID, AIAAIC_SHEET_NAME)
     df = pd.read_csv("repository.csv").dropna(how="all")
@@ -126,12 +125,14 @@ def get_clean_data():
             C.internal_harms_strategic_Legal,
         ]
     )
+    df.to_csv("aiie/pages/processed_dataset.csv", index=False)  # Save to the correct directory
 
     st.session_state["data"] = df
     st.session_state["columns"] = C
 
     return df, C
 
+get_clean_data()
 
 def prepare_topic_analysis(df, description):
     pass
