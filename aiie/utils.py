@@ -1,20 +1,72 @@
 import base64
 from collections import namedtuple
 from pathlib import Path
-
+import re
+import html2text
 import numpy as np
 import pandas as pd
 import plotly.express as px
+import requests
 import streamlit as st
+from bs4 import BeautifulSoup
+from markdownify import markdownify
 from pandas.api.types import (
     is_datetime64_any_dtype,
     is_numeric_dtype,
     is_object_dtype,
 )
 
+TTL = 30 * 60 * 24
+
 # TODO: put the repo url here
 github_repo_url = "https://github.com/dbbz/AIIE/issues"
 deploy_url = "https://aiiexp.streamlit.app/"
+
+
+@st.cache_data(ttl=TTL, show_spinner="Fetching more information about the incident...")
+def scrap_incident_description(link):
+    soup = BeautifulSoup(requests.get(link).text, "html.parser")
+
+    # This is dangeriously hard-coded.
+    description = soup.find_all(
+        # class_="hJDwNd-AhqUyc-uQSCkd Ft7HRd-AhqUyc-uQSCkd purZT-AhqUyc-II5mzb ZcASvf-AhqUyc-II5mzb pSzOP-AhqUyc-qWD73c Ktthjf-AhqUyc-qWD73c JNdkSc SQVYQc"
+        class_="hJDwNd-AhqUyc-uQSCkd Ft7HRd-AhqUyc-uQSCkd jXK9ad D2fZ2 zu5uec OjCsFc dmUFtb wHaque g5GTcb"
+    )
+
+    header_pattern = r"^(#+)\s+(.*)"
+    description = markdownify("\n".join((str(i) for i in description[1:-1])))
+    description = re.sub(header_pattern, r"#### \2", description)
+
+    description = description.replace(
+        "](/aiaaic-repository",
+        "](https://www.aiaaic.org/aiaaic-repository",
+    ).replace("### ", "##### ")
+    return description
+
+
+@st.cache_data(ttl=TTL, show_spinner="Fetching the list of links on the incident...")
+def get_list_of_links(page_url):
+    soup = BeautifulSoup(requests.get(page_url).text, "html.parser")
+    section = soup.find(string=re.compile(", commentar"))
+
+    if not section:
+        section = soup.find(string=re.compile("act check 🚩"))
+    if section:
+        li_list = section.find_next("ul").find_all("li")
+        # results = markdownify("\n".join(str(i) for i in li_list))
+        results = [html2text.html2text(str(i)) for i in li_list]
+
+        pattern = r"\[([^][]*)\]\(([^()]*)\)"
+        urls = []
+        for link in results:
+            match = re.search(pattern, link)
+            if match:
+                urls.append(match.group(2))
+
+        # links = [get_deepest_text(li) for li in li_list]
+        return urls
+    else:
+        return []
 
 
 # this function comes from Streamlit-Extra
@@ -56,13 +108,12 @@ def named_tabs(*tab_names):
 
 # TODO: replace this filter with an event-based filtering + state management
 # TODO: include nans too
-def category_text_filter(
-    df, mask, column_names, expander_label="Category filters", use_sidebar: bool = False
-) -> np.ndarray:
+def category_text_filter(df, mask, column_names) -> np.ndarray:
     category_filters = {col: [] for col in column_names}
-
-    expander_cls = st.sidebar.expander if use_sidebar else st.expander
-    with expander_cls(expander_label, expanded=True):
+    df = df[mask]
+    # with st.expander("Filter by category", expanded=True):
+    with st.container():
+        st.caption("Filter by category")
         for col in column_names:
             if is_numeric_dtype(df[col]):
                 min_value = df.loc[mask, col].min()
@@ -103,29 +154,26 @@ def category_text_filter(
     return mask
 
 
+# make_dataframe_filters()
 def dataframe_with_filters(
-    df: pd.DataFrame,
-    on_columns: list,
-    use_sidebar: bool = False,
-    with_col_filters: bool = True,
-) -> pd.DataFrame:
+    df: pd.DataFrame, on_columns: list, mask: np.ndarray | None = None
+) -> np.ndarray:
     """
     Adds a UI on top of a dataframe to let viewers filter columns.
 
     Args:
         df (pd.DataFrame): Original dataframe
         on_columns (list of strings): The list of columns to filter on
-        use_sidebar (bool): Whether to display the filtering widgets on the sidebar or the main page
     Returns:
         pd.DataFrame: Filtered dataframe
     """
-    mask = np.full_like(df.index, True, dtype=bool)
+    mask = np.full_like(df.index, True, dtype=bool) if mask is None else mask
 
-    with st.sidebar.expander("Global text filter", expanded=True):
-        search = st.text_input(
-            "Enter comma-separated keywords",
-            help="Case-insensitive, comma-separated keywords. Prefix with ~ to exclude.",
-        )
+    search = st.text_input(
+        "Search for specific terms",
+        placeholder="Enter comma-separated keywords...",
+        help="Case-insensitive, comma-separated keywords. Prefix with ~ to exclude.",
+    )
 
     search = [s.strip().lower() for s in search.split(",")]
     is_excluded = [s.startswith("~") for s in search]
@@ -146,10 +194,7 @@ def dataframe_with_filters(
                     axis=1,
                 )
 
-    if with_col_filters:
-        mask = category_text_filter(df, mask, on_columns, use_sidebar=use_sidebar)
-
-    return df[mask]
+    return mask
 
 
 @st.cache_data

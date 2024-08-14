@@ -24,8 +24,8 @@ class C(StrEnum):
     occurred = "Occurred"
     country = "Country(ies)"
     sector = "Sector(s)"
-    operator = "Operator(s)"
-    developer = "Deployer(s)"
+    operator = "Deployer(s)"
+    developer = "Developer(s)"
     system_name = "System name(s)"
     technology = "Technology(ies)"
     purpose = "Purpose(s)"
@@ -111,14 +111,6 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
         .rename(columns=lambda x: x.strip())
     )
 
-    # quick check that the column names did not change in the source repo
-    original_column_names = df.columns.to_list()
-    new_column_names = list(map(str, C))
-
-    if original_column_names != new_column_names:
-        st.toast(
-            "Some columns appear to have changed in the AIAAIC repository, hence some parts of this app might not work properly."
-        )
     df[C.country] = df[C.country].str.replace(";", ",")
     df[C.transparency] = df[C.transparency].str.replace(";", ",")
     df[C.risks] = df[C.risks].str.replace(";", ",")
@@ -130,6 +122,7 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
         df[col] = df[col].astype(str).str.split(";").str[0]
         df[col] = df[col].astype(str).str.split("-").str[0]
 
+        df[col] = pd.to_numeric(df[col], errors="coerce")
         # df[col] = df[col].astype("Int64")
 
     # handle the categorical columns
@@ -149,7 +142,10 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
 def get_clean_data(file_path="repository.csv"):
     # df = read_gsheet(AIAAIC_SHEET_ID, AIAAIC_SHEET_NAME)
     df = get_repository_data().dropna(how="all")
-    df = clean_data(df)
+
+    columns_to_keep = list(map(str, C))
+    df = clean_data(df)[columns_to_keep]
+
     # remove hidden columns
     # df = df.drop(
     #     columns=[
@@ -162,9 +158,9 @@ def get_clean_data(file_path="repository.csv"):
     #         C.internal_harms_strategic_Legal,
     #     ]
     # )
-    df.to_csv(
-        "aiie/pages/processed_dataset.csv", index=False
-    )  # Save to the correct directory
+    # df.to_csv(
+    #     "aiie/pages/processed_dataset.csv", index=False
+    # )  # Save to the correct directory
 
     st.session_state["data"] = df
     st.session_state["columns"] = C
@@ -172,7 +168,7 @@ def get_clean_data(file_path="repository.csv"):
     return df, C
 
 
-get_clean_data()
+# get_clean_data()
 
 
 def prepare_topic_analysis(df, description):

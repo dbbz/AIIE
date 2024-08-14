@@ -7,22 +7,20 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+import shelve
 
 import numpy as np
 import pandas as pd
 import streamlit as st
 from data import get_clean_data
-from utils import (
-    dataframe_with_filters,
-    retain_most_frequent_values,
-    _df_groupby,
-    gen_sankey,
-    add_logo,
-)
-import shelve
-from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.decomposition import LatentDirichletAllocation
-
+from sklearn.feature_extraction.text import CountVectorizer
+from utils import (
+    _df_groupby,
+    dataframe_with_filters,
+    gen_sankey,
+    retain_most_frequent_values,
+)
 
 st.logo(image="img/logo.png", link="http://aiiexp.streamlit.app")
 pd.options.plotting.backend = "plotly"
