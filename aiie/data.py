@@ -86,7 +86,10 @@ def download_public_sheet_as_csv(csv_url, filename="downloaded_sheet.csv"):
             f.write(response.content)
 
     except requests.exceptions.RequestException as e:
-        st.error(f"An error occurred: {e}")
+        st.toast(
+            "The online repository could not be downloaded. Using a potentially old version."
+        )
+        # st.error(f"An error occurred: {e}")
 
 
 @st.cache_data(show_spinner="Fetching more information about the incident...")
@@ -166,9 +169,6 @@ def get_clean_data(file_path="repository.csv"):
     st.session_state["columns"] = C
 
     return df, C
-
-
-# get_clean_data()
 
 
 def prepare_topic_analysis(df, description):

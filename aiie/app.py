@@ -1,21 +1,13 @@
-import shelve
-
 import numpy as np
 import pandas as pd
 import streamlit as st
-from sklearn.decomposition import LatentDirichletAllocation
-from sklearn.feature_extraction.text import CountVectorizer
-
 from box import Box
 
+from data import get_clean_data
 from utils import (
-    _df_groupby,
-    dataframe_with_filters,
     category_text_filter,
-    gen_sankey,
-    retain_most_frequent_values,
+    dataframe_with_filters,
     scrap_incident_description,
-    get_list_of_links,
 )
 
 st.set_page_config(
@@ -25,10 +17,9 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+
 st.logo(image="img/logo.png", link="http://aiiexp.streamlit.app")
 pd.options.plotting.backend = "plotly"
-
-from data import get_clean_data
 
 
 def make_layout():
@@ -126,4 +117,18 @@ def main():
     show_raw_data(layout.data, layout.sidebar.data_config, layout.header[1], df, C)
 
 
-main()
+from plotting import plot_timeline, plot_incidents_ranking, plot_sankey
+
+pages = {
+    "Search": [st.Page(main, title="Search", icon="🔎")],
+    "Plots": [
+        # st.Page("plots.py", title="Timeline", icon="📈"),
+        st.Page(plot_timeline, title="Timeline", icon="⏳"),
+        st.Page(plot_incidents_ranking, title="Rankings", icon="🏆"),
+        st.Page(plot_sankey, title="Sankey", icon="🤓"),
+        # st.Page(main, title="Charts", icon="📊"),
+    ],
+    "About": [st.Page("about.py", title="About", icon="👋🏼")],
+}
+pg = st.navigation(pages)
+pg.run()
