@@ -134,9 +134,9 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
 
     # convert to string (better than the `object` type)
 
-    str_columns = set(df.columns.to_list()) - int_columns  # - cat_columns
-    for col in str_columns:
-        df[col] = df[col].astype("string").fillna("Unknown")
+    # str_columns = set(df.columns.to_list()) - int_columns  # - cat_columns
+    # for col in str_columns:
+    #     df[col] = df[col].astype("string").fillna("Unknown")
 
     return df
 

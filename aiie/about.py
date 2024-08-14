@@ -65,6 +65,14 @@ with cols[1]:
         icon="👋",
     )
 
+    st.info(
+        """
+        **license**: CC BY-NC-SA 4.0
+        """,
+        icon="📝",
+    )
+
+
 # cols = st.columns(3)
 # cols[0].link_button(
 #     "See the incidents",
@@ -87,32 +95,25 @@ with cols[1]:
 #     help="Soon!",
 # )
 
-with st.sidebar:
-    with st.expander("Changelog", expanded=False):
-        st.info("**v0.5**: Interactive heatmap plots added (thanks to Sofia).")
-        st.info("**v0.4**: Topic analysis added.")
-        st.info("**v0.3**: Sankey plots added.")
-        st.info("**v0.2**: Search and plotting combined.")
-        st.info("**v0.1**: AIIE launched.")
 
-    st.warning(
-        f"""
-        something broken?
-        [Let me know by opening a GitHub issue!]({github_repo_url})
-        """,
-        icon="👾",
-    )
+with st.sidebar.expander("Changelog", expanded=False):
+    st.info("**v0.5**: Interactive heatmap plots added (thanks to Sofia).")
+    st.info("**v0.4**: Topic analysis added.")
+    st.info("**v0.3**: Sankey plots added.")
+    st.info("**v0.2**: Search and plotting combined.")
+    st.info("**v0.1**: AIIE launched.")
 
-    st.warning(
-        """
-        This is still experimental and bugs are likely to exist. Please use with caution and scrupulously verify your analyses.
-        """,
-        icon="⚠️",
-    )
+    # st.warning(
+    #     f"""
+    #     something broken?
+    #     [Let me know by opening a GitHub issue!]({github_repo_url})
+    #     """,
+    #     icon="👾",
+    # )
 
-    st.info(
-        """
-        **license**: CC BY-NC-SA 4.0
-        """,
-        icon="📝",
-    )
+    # st.warning(
+    #     """
+    #     This is still experimental and bugs are likely to exist. Please use with caution and scrupulously verify your analyses.
+    #     """,
+    #     icon="⚠️",
+    # )

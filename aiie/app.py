@@ -90,9 +90,13 @@ def show_raw_data(container, sidebar, total, df, C):
         incident_index = selected_row.selection.rows[0]
         incident = df.iloc[incident_index]
 
-        incident_description = scrap_incident_description(incident[C.summary_links])
-
-        st.info(incident_description, icon="📄")
+        try:
+            incident_description = scrap_incident_description(incident[C.summary_links])
+            st.info(incident_description, icon="📄")
+        except:
+            st.error(
+                "An error occurred. The incident information could not be downloaded."
+            )
         st.page_link(
             incident[C.summary_links],
             label="Go to the incident page",
@@ -117,18 +121,21 @@ def main():
     show_raw_data(layout.data, layout.sidebar.data_config, layout.header[1], df, C)
 
 
-from plotting import plot_timeline, plot_incidents_ranking, plot_sankey
+from plotting import timeline, rankings, sankey, interactions, umap
 
 pages = {
-    "Search": [st.Page(main, title="Search", icon="🔎")],
+    "Database": [
+        st.Page("about.py", title="About", icon="👋🏼"),
+        st.Page(main, title="Search", icon="🔎"),
+    ],
     "Plots": [
         # st.Page("plots.py", title="Timeline", icon="📈"),
-        st.Page(plot_timeline, title="Timeline", icon="⏳"),
-        st.Page(plot_incidents_ranking, title="Rankings", icon="🏆"),
-        st.Page(plot_sankey, title="Sankey", icon="🤓"),
-        # st.Page(main, title="Charts", icon="📊"),
+        st.Page(timeline, title="Timeline", icon="⏳"),
+        st.Page(rankings, title="Rankings", icon="🏆"),
+        st.Page(sankey, title="Sankey", icon="🤓"),
+        st.Page(interactions, title="Interactions", icon="📊"),
+        st.Page(umap, title="UMAP", icon="✨"),
     ],
-    "About": [st.Page("about.py", title="About", icon="👋🏼")],
 }
 pg = st.navigation(pages)
 pg.run()

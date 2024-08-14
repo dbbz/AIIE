@@ -127,8 +127,10 @@ def category_text_filter(df, mask, column_names) -> np.ndarray:
                 )
                 mask = mask & df[col].between(*min_max)
             else:
+                # df[col] = df[col].fillna("None")  # TMP
                 counts = (
                     df.loc[mask, col]
+                    .dropna()
                     .value_counts(dropna=False)
                     .reset_index()
                     .set_axis([col, "counts"], axis=1)
@@ -138,7 +140,6 @@ def category_text_filter(df, mask, column_names) -> np.ndarray:
                 counts["labels"] = (
                     counts[col] + " (" + counts["counts"].astype(str) + ")"
                 )
-
                 category_filters[col] = st.multiselect(
                     col,
                     counts[col].sort_values().unique(),
