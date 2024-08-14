@@ -8,6 +8,8 @@ from bs4 import BeautifulSoup
 AIAAIC_SHEET_ID = "1Bn55B4xz21-_Rgdr8BBb2lt0n_4rzLGxFADMlVW0PYI"
 AIAAIC_SHEET_NAME = "Repository"
 
+TTL = 30 * 60 * 24
+
 
 # Conveniency column enum
 # Provides auto completion
@@ -16,7 +18,7 @@ AIAAIC_SHEET_NAME = "Repository"
 # Admittedly, it could have been replaced by
 # df.columns.str.strip().str.lower().str.split('(').str[0].str.replace(r'\W', '_', regex=True)
 class C(StrEnum):
-    title = "Headline/title"
+    title = "Headline"
     type = "Type"
     released = "Released"
     occurred = "Occurred"
@@ -30,27 +32,61 @@ class C(StrEnum):
     media_trigger = "Media trigger(s)"
     risks = "Issue(s)"
     transparency = "Transparency"
-    external_harms_individual = "External harms Individual"
-    external_harms_societal = "External harms Societal"
-    external_harms_environmental = "External harms Environmental"
-    internal_harms_strategic_reputational = "Internal harms Strategic/reputational"
-    internal_harms_strategic_operational = "Internal harms Operational"
-    internal_harms_strategic_financial = "Internal harms Financial"
-    internal_harms_strategic_Legal = "Internal harms Legal/regulatory"
+
+    # external_harms_individual = "External harms Individual"
+    # external_harms_societal = "External harms Societal"
+    # external_harms_environmental = "External harms Environmental"
+    # internal_harms_strategic_reputational = "Internal harms Strategic/reputational"
+    # internal_harms_strategic_operational = "Internal harms Operational"
+    # internal_harms_strategic_financial = "Internal harms Financial"
+    # internal_harms_strategic_Legal = "Internal harms Legal/regulatory"
+
     # operational = "Operational"
     # financial = "Financial"
     # societal = "Societal"
     # environmental = "Environmental"
     # legal_regulatory = "Legal/regulatory"
+
     summary_links = "Description/links"
 
 
-# @st.cache_data(show_spinner="Fetchez la data... 🐮")
-def read_gsheet(sheet_id: str, sheet_name: str) -> pd.DataFrame:
-    url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&sheet={sheet_name}"
-    return pd.read_csv(url, header=0, skiprows=[0, 2], skip_blank_lines=True).dropna(
-        how="all"
+# Load the actual AIAAIC repository (list of incidents)
+# It used to be downloaded from the online repo
+# but due to frequent changes in the sheet format
+# I ended up using an offline (potentially not up to date) version
+@st.cache_data(ttl=TTL, show_spinner="Fetchez la data... 🐮")
+def get_repository_data():
+    download_public_sheet_as_csv(
+        "https://docs.google.com/spreadsheets/d/1Bn55B4xz21-_Rgdr8BBb2lt0n_4rzLGxFADMlVW0PYI/export?format=csv&gid=888071280"
     )
+    df = (
+        pd.read_csv("downloaded_sheet.csv", skip_blank_lines=True, skiprows=[0, 2])
+        .dropna(how="all")
+        .dropna(axis=1, how="all")
+    )
+
+    # df = df.set_index(df.columns[0]).rename(columns=lambda x: x.strip())
+
+    return df
+
+
+def download_public_sheet_as_csv(csv_url, filename="downloaded_sheet.csv"):
+    """Downloads a public Google Sheet as a CSV file.
+
+    Args:
+        csv_url (str): The CSV download URL of the Google Sheet.
+        filename (str, optional): The filename for the downloaded CSV file. Defaults to "downloaded_sheet.csv".
+    """
+
+    try:
+        response = requests.get(csv_url)
+        response.raise_for_status()  # Check for HTTP errors
+
+        with open(filename, "wb") as f:
+            f.write(response.content)
+
+    except requests.exceptions.RequestException as e:
+        st.error(f"An error occurred: {e}")
 
 
 @st.cache_data(show_spinner="Fetching more information about the incident...")
@@ -112,28 +148,32 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
 
 def get_clean_data(file_path="repository.csv"):
     # df = read_gsheet(AIAAIC_SHEET_ID, AIAAIC_SHEET_NAME)
-    df = pd.read_csv(file_path).dropna(how="all")
+    df = get_repository_data().dropna(how="all")
     df = clean_data(df)
     # remove hidden columns
-    df = df.drop(
-        columns=[
-            C.external_harms_individual,
-            C.external_harms_societal,
-            C.external_harms_environmental,
-            C.internal_harms_strategic_reputational,
-            C.internal_harms_strategic_operational,
-            C.internal_harms_strategic_financial,
-            C.internal_harms_strategic_Legal,
-        ]
-    )
-    df.to_csv("aiie/pages/processed_dataset.csv", index=False)  # Save to the correct directory
+    # df = df.drop(
+    #     columns=[
+    #         C.external_harms_individual,
+    #         C.external_harms_societal,
+    #         C.external_harms_environmental,
+    #         C.internal_harms_strategic_reputational,
+    #         C.internal_harms_strategic_operational,
+    #         C.internal_harms_strategic_financial,
+    #         C.internal_harms_strategic_Legal,
+    #     ]
+    # )
+    df.to_csv(
+        "aiie/pages/processed_dataset.csv", index=False
+    )  # Save to the correct directory
 
     st.session_state["data"] = df
     st.session_state["columns"] = C
 
     return df, C
 
+
 get_clean_data()
+
 
 def prepare_topic_analysis(df, description):
     pass
