@@ -20,6 +20,7 @@ from utils import (
     dataframe_with_filters,
     gen_sankey,
     retain_most_frequent_values,
+    category_text_filter,
 )
 
 st.logo(image="img/logo.png", link="http://aiiexp.streamlit.app")
@@ -76,22 +77,28 @@ with st.sidebar.expander("Plotting", expanded=True):
     if enable_topic_modeling:
         tabs_names += ["Topic analysis"]
 
-# Display the filtering widgets
-df = dataframe_with_filters(
-    df,
-    on_columns=[
-        # C.occurred,
-        # C.released,
-        C.type,
-        C.country,
-        C.sector,
-        C.technology,
-        C.risks,
-        C.transparency,
-        C.media_trigger,
-    ],
-    use_sidebar=True,
-)
+
+columns_to_filter_on = [
+    # C.occurred,
+    # C.released,
+    C.type,
+    C.country,
+    C.sector,
+    C.technology,
+    C.risks,
+    C.transparency,
+    C.media_trigger,
+]
+mask = np.full_like(df.index, True, dtype=bool)
+
+with st.sidebar:
+    # Display the filtering widgets
+    mask = category_text_filter(df, mask, columns_to_filter_on)
+
+df = df[mask]
+
+mask = dataframe_with_filters(df, on_columns=columns_to_filter_on, mask=mask)
+df = df[mask]
 
 st.data_editor(
     df,

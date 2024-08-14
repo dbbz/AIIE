@@ -54,7 +54,6 @@ class C(StrEnum):
 # It used to be downloaded from the online repo
 # but due to frequent changes in the sheet format
 # I ended up using an offline (potentially not up to date) version
-@st.cache_data(ttl=TTL, show_spinner="Fetchez la data... 🐮")
 def get_repository_data():
     download_public_sheet_as_csv(
         "https://docs.google.com/spreadsheets/d/1Bn55B4xz21-_Rgdr8BBb2lt0n_4rzLGxFADMlVW0PYI/export?format=csv&gid=888071280"
@@ -64,12 +63,12 @@ def get_repository_data():
         .dropna(how="all")
         .dropna(axis=1, how="all")
     )
-
     # df = df.set_index(df.columns[0]).rename(columns=lambda x: x.strip())
 
     return df
 
 
+@st.cache_data(ttl=TTL, show_spinner="Fetchez la data... 🐮")
 def download_public_sheet_as_csv(csv_url, filename="downloaded_sheet.csv"):
     """Downloads a public Google Sheet as a CSV file.
 

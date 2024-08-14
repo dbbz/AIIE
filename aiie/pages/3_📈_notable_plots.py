@@ -20,6 +20,7 @@ from utils import (
     github_repo_url,
     plot_counts,
     retain_most_frequent_values,
+    category_text_filter,
 )
 
 st.logo(image="img/logo.png", link="http://aiiexp.streamlit.app")
@@ -28,12 +29,37 @@ df, C = get_clean_data()
 
 top_N = st.sidebar.number_input("Number of top values to show", 1, 20, 10)
 
-df = dataframe_with_filters(
-    df,
-    on_columns=[C.type, C.country, C.sector, C.technology, C.risks, C.transparency],
-    use_sidebar=True,
-    with_col_filters=False,
-)
+
+# columns_to_filter_on = [
+#     # C.occurred,
+#     # C.released,
+#     C.type,
+#     C.country,
+#     C.sector,
+#     C.technology,
+#     C.risks,
+#     C.transparency,
+#     C.media_trigger,
+# ]
+
+columns_to_filter_on = [
+    C.type,
+    C.country,
+    C.sector,
+    C.technology,
+    C.risks,
+    C.transparency,
+]
+mask = np.full_like(df.index, True, dtype=bool)
+
+with st.sidebar:
+    # Display the filtering widgets
+    mask = category_text_filter(df, mask, columns_to_filter_on)
+
+df = df[mask]
+
+mask = dataframe_with_filters(df, on_columns=columns_to_filter_on, mask=mask)
+df = df[mask]
 
 
 with st.expander(f"🔔 Top {top_N} incidents rankings ✨", expanded=True):
