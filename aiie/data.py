@@ -110,9 +110,9 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def get_clean_data():
+def get_clean_data(file_path="repository.csv"):
     # df = read_gsheet(AIAAIC_SHEET_ID, AIAAIC_SHEET_NAME)
-    df = pd.read_csv("repository.csv").dropna(how="all")
+    df = pd.read_csv(file_path).dropna(how="all")
     df = clean_data(df)
     # remove hidden columns
     df = df.drop(

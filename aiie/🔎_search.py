@@ -26,6 +26,7 @@ pd.options.plotting.backend = "plotly"
 col_1, col_2 = st.columns([5, 1])
 col_1.title("🧭 AI Incidents Explorer")
 
+# get the clean dataset along with the enum mapping of the columns (C)
 df, C = get_clean_data()
 
 # The list of possible columns to plot
