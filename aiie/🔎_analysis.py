@@ -12,12 +12,12 @@ from utils import (
     add_logo,
 )
 
-st.set_page_config(
-    page_title="AIIA - Search",
-    layout="wide",
-    page_icon="🔎",
-    initial_sidebar_state="expanded",
-)
+#st.set_page_config(
+#    page_title="AIIA - Search",
+#    layout="wide",
+#    page_icon="🔎",
+#    initial_sidebar_state="expanded",
+#)
 add_logo("img/logo.png", 90)
 pd.options.plotting.backend = "plotly"
 

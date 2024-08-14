@@ -1,3 +1,13 @@
+import streamlit as st
+
+st.set_page_config(
+    page_title="AIIA - Search",
+    layout="wide",
+    page_icon="🔎",
+    initial_sidebar_state="expanded",
+)
+
+
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -13,13 +23,6 @@ import shelve
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.decomposition import LatentDirichletAllocation
 
-
-st.set_page_config(
-    page_title="AIIA - Search",
-    layout="wide",
-    page_icon="🔎",
-    initial_sidebar_state="expanded",
-)
 add_logo("img/logo.png", 90)
 pd.options.plotting.backend = "plotly"
 

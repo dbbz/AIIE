@@ -126,12 +126,14 @@ def get_clean_data(file_path="repository.csv"):
             C.internal_harms_strategic_Legal,
         ]
     )
+    df.to_csv("aiie/pages/processed_dataset.csv", index=False)  # Save to the correct directory
 
     st.session_state["data"] = df
     st.session_state["columns"] = C
 
     return df, C
 
+get_clean_data()
 
 def prepare_topic_analysis(df, description):
     pass
