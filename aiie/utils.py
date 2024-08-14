@@ -1,15 +1,17 @@
 import base64
 from collections import namedtuple
 from pathlib import Path
+
 import numpy as np
 import pandas as pd
+import plotly.express as px
 import streamlit as st
 from pandas.api.types import (
     is_datetime64_any_dtype,
     is_numeric_dtype,
     is_object_dtype,
 )
-import plotly.express as px
+
 # TODO: put the repo url here
 github_repo_url = "https://github.com/dbbz/AIIE/issues"
 deploy_url = "https://aiiexp.streamlit.app/"
@@ -101,7 +103,6 @@ def category_text_filter(
     return mask
 
 
-
 def dataframe_with_filters(
     df: pd.DataFrame,
     on_columns: list,
@@ -168,15 +169,21 @@ def plot_counts(df, column, top_N):
 
     # Generate the counts
     df_counts = df_filtered[column].value_counts().reset_index()
-    df_counts.columns = [column, 'count']
+    df_counts.columns = [column, "count"]
 
     # Sort the DataFrame by count to plot
-    df_counts = df_counts.sort_values(by='count', ascending=True)
+    df_counts = df_counts.sort_values(by="count", ascending=True)
 
     # Creating a Plotly bar chart
-    fig = px.bar(df_counts, x='count', y=column, orientation='h',
-                 title=f"Top {top_N} {column} by count")
+    fig = px.bar(
+        df_counts,
+        x="count",
+        y=column,
+        orientation="h",
+        title=f"Top {top_N} {column} by count",
+    )
     st.plotly_chart(fig, use_container_width=True)
+
 
 @st.cache_data
 def _df_groupby(df, cols):

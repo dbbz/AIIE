@@ -23,7 +23,8 @@ import shelve
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.decomposition import LatentDirichletAllocation
 
-add_logo("img/logo.png", 90)
+
+st.logo(image="img/logo.png", link="http://aiiexp.streamlit.app")
 pd.options.plotting.backend = "plotly"
 
 col_1, col_2 = st.columns([5, 1])
