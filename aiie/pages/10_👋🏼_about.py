@@ -5,12 +5,12 @@ from data import get_clean_data
 from utils import github_repo_url, deploy_url, add_logo
 
 pd.options.plotting.backend = "plotly"
-st.set_page_config(
-    page_title="AIIA - About",
-    layout="centered",
-    page_icon="img/logo.png",
-    initial_sidebar_state="expanded",
-)
+# st.set_page_config(
+#    page_title="AIIA - About",
+#    layout="centered",
+#    page_icon="img/logo.png",
+#    initial_sidebar_state="expanded",
+# )
 add_logo("img/logo.png", 90)
 
 
@@ -33,7 +33,10 @@ st.write(
 
 st.success(
     """
-    made by **Djalel Benbouzid**, reach out on [LinkedIn](http://linkedin.com/in/dbenbouzid/) for questions and comments.
+    **Author**: Djalel Benbouzid ([questions and comments](http://linkedin.com/in/dbenbouzid/))
+
+    **Contributors**:
+    - Sofia Vei, Aristotle University of Thessaloniki, Greece
     """,
     icon="👋",
 )
@@ -87,6 +90,7 @@ with st.expander("", expanded=True):
 # )
 
 with st.sidebar.expander("Changelog", expanded=False):
+    st.info("**v0.5**: Interactive heatmap plots added (thanks Sofia).")
     st.info("**v0.4**: Topic analysis added.")
     st.info("**v0.3**: Sankey plots added.")
     st.info("**v0.2**: Search and plotting combined.")
