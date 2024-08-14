@@ -55,9 +55,16 @@ class C(StrEnum):
 # but due to frequent changes in the sheet format
 # I ended up using an offline (potentially not up to date) version
 def get_repository_data():
-    download_public_sheet_as_csv(
-        "https://docs.google.com/spreadsheets/d/1Bn55B4xz21-_Rgdr8BBb2lt0n_4rzLGxFADMlVW0PYI/export?format=csv&gid=888071280"
-    )
+    try:
+        download_public_sheet_as_csv(
+            "https://docs.google.com/spreadsheets/d/1Bn55B4xz21-_Rgdr8BBb2lt0n_4rzLGxFADMlVW0PYI/export?format=csv&gid=888071280"
+        )
+    except requests.exceptions.RequestException as e:
+        st.toast(
+            "The online repository could not be downloaded. Using a potentially old version."
+        )
+        # st.error(f"An error occurred: {e}")
+
     df = (
         pd.read_csv("downloaded_sheet.csv", skip_blank_lines=True, skiprows=[0, 2])
         .dropna(how="all")
@@ -76,19 +83,11 @@ def download_public_sheet_as_csv(csv_url, filename="downloaded_sheet.csv"):
         csv_url (str): The CSV download URL of the Google Sheet.
         filename (str, optional): The filename for the downloaded CSV file. Defaults to "downloaded_sheet.csv".
     """
+    response = requests.get(csv_url)
+    response.raise_for_status()  # Check for HTTP errors
 
-    try:
-        response = requests.get(csv_url)
-        response.raise_for_status()  # Check for HTTP errors
-
-        with open(filename, "wb") as f:
-            f.write(response.content)
-
-    except requests.exceptions.RequestException as e:
-        st.toast(
-            "The online repository could not be downloaded. Using a potentially old version."
-        )
-        # st.error(f"An error occurred: {e}")
+    with open(filename, "wb") as f:
+        f.write(response.content)
 
 
 @st.cache_data(show_spinner="Fetching more information about the incident...")
