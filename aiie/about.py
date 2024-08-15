@@ -97,6 +97,9 @@ with cols[1]:
 
 
 with st.sidebar.expander("Changelog", expanded=False):
+    st.info(
+        "**v1.0**: Major revamping. The search is now more usable and the plots better highlighted."
+    )
     st.info("**v0.5**: Interactive heatmap plots added (thanks to Sofia).")
     st.info("**v0.4**: Topic analysis added.")
     st.info("**v0.3**: Sankey plots added.")
