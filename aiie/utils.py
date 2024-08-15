@@ -171,7 +171,7 @@ def dataframe_with_filters(
     mask = np.full_like(df.index, True, dtype=bool) if mask is None else mask
 
     search = st.text_input(
-        "Search for specific terms",
+        "Filter the repository on specific terms",
         placeholder="Enter comma-separated keywords...",
         help="Case-insensitive, comma-separated keywords. Prefix with ~ to exclude.",
     )

@@ -151,62 +151,20 @@ def show_plots(container, sidebar, df, C):
     #         "Plot only the most frequent...", [5, 10, 15, 20, 25, 30, 40, 50, "all"], 25
     #     )
     with container:
-        plots_tabs = st.tabs(columns_to_plot + ["Sankey plot"])
+        plots_tabs = st.tabs(columns_to_plot)
         for i, col in enumerate(columns_to_plot):
-            if col == "Sankey plot":
-                with plots_tabs[i]:
-                    sankey_vars = st.multiselect(
-                        "Choose at least two columns to plot",
-                        columns_to_plot,
-                        default=columns_to_plot[:2],
-                        max_selections=4,
-                        help="💡 Use the text filters for better plots.",
-                    )
-
-                    if sankey_vars:
-                        sankey_cols = st.columns(len(sankey_vars))
-                    text_filters = {}
-                    for i, col in enumerate(sankey_vars):
-                        text_filters[col] = sankey_cols[i].text_input(
-                            "Text filter on " + col,
-                            key="text_" + col,
-                            help="Case-insensitive text filtering.",
-                        )
-
-                    if len(sankey_vars) == 1:
-                        st.warning("Select a second column to plot.", icon="⚠️")
-
-                    mask = np.full_like(df.index, True, dtype=bool)
-                    for col, filered_text in text_filters.items():
-                        if filered_text.strip():
-                            mask = mask & df[col].str.lower().str.contains(
-                                filered_text.lower()
-                            )
-
-                    if len(sankey_vars) > 1:
-                        df_mask = df[mask]
-                        df_sankey = _df_groupby(df_mask, sankey_vars)
-                        fig = gen_sankey(
-                            df_sankey,
-                            sankey_vars,
-                            "counts",
-                            None,
-                            # " - ".join(sankey_vars),
-                        )
-                        st.plotly_chart(fig, use_container_width=True)
+            if top_N != "all":
+                df_filtered = retain_most_frequent_values(df, col, int(top_N))
             else:
-                if top_N != "all":
-                    df_filtered = retain_most_frequent_values(df, col, int(top_N))
-                else:
-                    df_filtered = df
-                count_plot = (
-                    df_filtered[col]
-                    .value_counts(sort=True, ascending=True)
-                    .to_frame(name="count")
-                    .plot(kind="barh")
-                    .update_layout(showlegend=False)
-                )
-                plots_tabs[i].plotly_chart(count_plot, use_container_width=True)
+                df_filtered = df
+            count_plot = (
+                df_filtered[col]
+                .value_counts(sort=True, ascending=True)
+                .to_frame(name="count")
+                .plot(kind="barh")
+                .update_layout(showlegend=False)
+            )
+            plots_tabs[i].plotly_chart(count_plot, use_container_width=True)
 
 
 def main():

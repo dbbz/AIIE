@@ -12,6 +12,7 @@ from umap import UMAP
 from utils import (
     _df_groupby,
     dataframe_with_filters,
+    category_text_filter,
     gen_sankey,
     github_repo_url,
     plot_counts,
@@ -111,9 +112,16 @@ def sankey():
         C.risks,
         C.country,
         C.operator,
+        C.developer,
         C.transparency,
+        C.media_trigger,
     ]
 
+    global df
+    mask = np.full_like(df.index, True, dtype=bool)
+    mask &= dataframe_with_filters(df, on_columns=columns_to_plot, mask=mask)
+
+    df = df[mask]
     sankey_vars = st.multiselect(
         "Choose at least two columns to plot",
         columns_to_plot,
