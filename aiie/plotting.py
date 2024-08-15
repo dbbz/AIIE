@@ -548,10 +548,10 @@ def interactions():
 
         # Dropdown with radio button for selecting the number of top frequencies
         top_n_options = ["Top 10", "Top 20", "Top 50", "All"]
-        frequency_option = st.radio(
+        frequency_option = st.sidebar.radio(
             "Select the number of top frequencies to display:",
             options=top_n_options,
-            horizontal=True,
+            horizontal=False,
         )
 
         # Mapping selected option to a value remains the same
@@ -601,16 +601,15 @@ def interactions():
             "Transparency": "transp",
         }
 
-        col_1, col_2 = st.columns(2)
         # User selects the category for the X axis
-        x_axis_option = col_1.selectbox(
+        x_axis_option = st.sidebar.selectbox(
             "Choose X axis:",
             options=list(categories.keys()),  # Display the keys for selection
             index=0,  # Default selection (first item)
         )
 
         # User selects the category for the Y axis
-        y_axis_option = col_2.selectbox(
+        y_axis_option = st.sidebar.selectbox(
             "Choose Y axis:",
             options=list(categories.keys()),  # Display the keys for selection
             index=1,  # Default to second item to avoid same default as X axis
@@ -719,7 +718,10 @@ def interactions():
 
 def umap():
     st.markdown(
-        "#### Utilize UMAP (Uniform Manifold Approximation and Projection) to reduce high-dimensional data into a two-dimensional space for visual analysis."
+        """
+## UMAP (Uniform Manifold Approximation and Projection)
+#### Reducing high-dimensional data into a two-dimensional space for visual analysis
+        """
     )
 
     df_processed = df.copy()
@@ -737,12 +739,12 @@ def umap():
     }
 
     # User selects the category for coloring
-    coloring_options = st.selectbox(
+    coloring_options = st.sidebar.selectbox(
         "Select the category to color by:", options=list(feature_categories.keys())
     )
 
     # User selects the number of top features to display in the chosen category
-    top_k = st.slider(
+    top_k = st.sidebar.slider(
         "Select the number of top categories to display:",
         min_value=1,
         max_value=20,
@@ -754,7 +756,7 @@ def umap():
         col for col in df_incidents.columns if col.startswith(coloring_options)
     ]
     # Set or adjust the number of neighbors
-    n_neighbors = st.slider(
+    n_neighbors = st.sidebar.slider(
         "Select the number of neighbors for UMAP:", min_value=5, max_value=50, value=15
     )
 
@@ -777,7 +779,7 @@ def umap():
     df_incidents["Transparency"] = aggregate_features(df_incidents, "transp")
 
     # Process for displaying the UMAP
-    if st.button("Generate UMAP Visualization"):
+    if st.sidebar.button("Generate UMAP Visualization", use_container_width=True):
         # Get top K columns in the selected category for coloring
         top_k_columns = get_top_columns(df_incidents, all_features_in_category, top_k)
 
@@ -843,6 +845,6 @@ def umap():
         with st.container():
             st.plotly_chart(fig, use_container_width=True)
     else:
-        st.write(
-            "After selecting a feature category and the number of top features to consider, click 'Generate UMAP Visualization' to create the plot. The visualization groups incidents, represented as points, to illustrate how they relate across dimensions that are not immediately apparent in the raw data. Hover over each point to see a summary of the incident's attributes for more in-depth analysis."
+        st.caption(
+            "After selecting a feature category and the number of top features to consider (from the sidebar on the left), click 'Generate UMAP Visualization' to create the plot. The visualization groups incidents, represented as points, to illustrate how they relate across dimensions that are not immediately apparent in the raw data. Hover over each point to see a summary of the incident's attributes for more in-depth analysis."
         )
