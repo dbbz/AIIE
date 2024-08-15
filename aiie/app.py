@@ -2,11 +2,13 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 from box import Box
-
 from data import get_clean_data
 from utils import (
+    _df_groupby,
     category_text_filter,
     dataframe_with_filters,
+    gen_sankey,
+    retain_most_frequent_values,
     scrap_incident_description,
 )
 
@@ -17,6 +19,15 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+from plotting import interactions, rankings, sankey, timeline, umap
+
+st.html("""
+  <style>
+    [alt=Logo] {
+      height: 10rem;
+    }
+  </style>
+        """)
 
 st.logo(image="img/logo.png", link="http://aiiexp.streamlit.app")
 pd.options.plotting.backend = "plotly"
@@ -24,14 +35,16 @@ pd.options.plotting.backend = "plotly"
 
 def make_layout():
     layout = Box()
-    layout.sidebar = {}
-
-    with st.sidebar:
-        layout.sidebar.data_config = st.container()
-        layout.sidebar.plotting_config = st.container()
 
     layout.header = st.columns([5, 1])
-    layout.data = st.container()
+
+    layout.dashboard = st.columns(2, gap="medium")
+
+    layout.data = layout.dashboard[0].container()
+    layout.data_config = st.sidebar.container()
+
+    layout.plots = layout.dashboard[1].container()
+    layout.plots_config = layout.dashboard[1].container()
 
     return layout
 
@@ -48,16 +61,19 @@ def show_raw_data(container, sidebar, total, df, C):
         C.transparency,
         C.media_trigger,
     ]
-    mask = np.full_like(df.index, True, dtype=bool)
+
+    df = df[st.session_state.mask]
+    with container:
+        st.session_state.mask &= dataframe_with_filters(
+            df, on_columns=columns_to_filter_on, mask=st.session_state.mask
+        )
+    df = df[st.session_state.mask]
 
     with sidebar:
         # Display the filtering widgets
-        mask = category_text_filter(df, mask, columns_to_filter_on)
-
-    df = df[mask]
-    with container:
-        mask = dataframe_with_filters(df, on_columns=columns_to_filter_on, mask=mask)
-    df = df[mask]
+        st.session_state.mask &= category_text_filter(
+            df, st.session_state.mask, columns_to_filter_on
+        )
 
     with container:
         selected_row = st.dataframe(
@@ -90,38 +106,120 @@ def show_raw_data(container, sidebar, total, df, C):
         incident_index = selected_row.selection.rows[0]
         incident = df.iloc[incident_index]
 
-        try:
-            incident_description = scrap_incident_description(incident[C.summary_links])
-            st.info(incident_description, icon="📄")
-        except:
-            st.error(
-                "An error occurred. The incident information could not be downloaded."
-            )
-        st.page_link(
-            incident[C.summary_links],
-            label="Go to the incident page",
-            use_container_width=True,
-            icon="🌐",
-        )
+        show_incident_description(incident[C.summary_links])
     else:
         st.info("Select a row to display more info ", icon="⤴")
 
     total.metric("Total incidents", df.index.size)
 
 
+@st.fragment
+def show_incident_description(link):
+    try:
+        incident_description = scrap_incident_description(link)
+        st.info(incident_description, icon="📄")
+    except:
+        st.error("An error occurred. The incident information could not be downloaded.")
+    st.page_link(
+        link,
+        label="Go to the incident page",
+        use_container_width=True,
+        icon="🌐",
+    )
+
+
+def show_plots(container, sidebar, df, C):
+    columns_to_plot = [
+        C.country,
+        C.type,
+        C.sector,
+        C.developer,
+        C.operator,
+        C.technology,
+        C.system_name,
+        C.risks,
+        C.transparency,
+        C.media_trigger,
+        C.purpose,
+    ]
+
+    df = df[st.session_state.mask]
+
+    top_N = 10
+    # with sidebar:
+    #     top_N = st.select_slider(
+    #         "Plot only the most frequent...", [5, 10, 15, 20, 25, 30, 40, 50, "all"], 25
+    #     )
+    with container:
+        plots_tabs = st.tabs(columns_to_plot + ["Sankey plot"])
+        for i, col in enumerate(columns_to_plot):
+            if col == "Sankey plot":
+                with plots_tabs[i]:
+                    sankey_vars = st.multiselect(
+                        "Choose at least two columns to plot",
+                        columns_to_plot,
+                        default=columns_to_plot[:2],
+                        max_selections=4,
+                        help="💡 Use the text filters for better plots.",
+                    )
+
+                    if sankey_vars:
+                        sankey_cols = st.columns(len(sankey_vars))
+                    text_filters = {}
+                    for i, col in enumerate(sankey_vars):
+                        text_filters[col] = sankey_cols[i].text_input(
+                            "Text filter on " + col,
+                            key="text_" + col,
+                            help="Case-insensitive text filtering.",
+                        )
+
+                    if len(sankey_vars) == 1:
+                        st.warning("Select a second column to plot.", icon="⚠️")
+
+                    mask = np.full_like(df.index, True, dtype=bool)
+                    for col, filered_text in text_filters.items():
+                        if filered_text.strip():
+                            mask = mask & df[col].str.lower().str.contains(
+                                filered_text.lower()
+                            )
+
+                    if len(sankey_vars) > 1:
+                        df_mask = df[mask]
+                        df_sankey = _df_groupby(df_mask, sankey_vars)
+                        fig = gen_sankey(
+                            df_sankey,
+                            sankey_vars,
+                            "counts",
+                            None,
+                            # " - ".join(sankey_vars),
+                        )
+                        st.plotly_chart(fig, use_container_width=True)
+            else:
+                if top_N != "all":
+                    df_filtered = retain_most_frequent_values(df, col, int(top_N))
+                else:
+                    df_filtered = df
+                count_plot = (
+                    df_filtered[col]
+                    .value_counts(sort=True, ascending=True)
+                    .to_frame(name="count")
+                    .plot(kind="barh")
+                    .update_layout(showlegend=False)
+                )
+                plots_tabs[i].plotly_chart(count_plot, use_container_width=True)
+
+
 def main():
     # get the clean dataset along with the enum mapping of the columns (C)
     df, C = get_clean_data()
+    st.session_state.mask = np.full_like(df.index, True, dtype=bool)
 
     # build the overall layout, creating st.container()s and st.empty()s
     layout = make_layout()
-
     layout.header[0].title("🧭 AI Incidents Explorer")
+    show_raw_data(layout.data, layout.data_config, layout.header[1], df, C)
+    show_plots(layout.plots, layout.plots_config, df, C)
 
-    show_raw_data(layout.data, layout.sidebar.data_config, layout.header[1], df, C)
-
-
-from plotting import timeline, rankings, sankey, interactions, umap
 
 pages = {
     "Database": [
