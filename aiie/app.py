@@ -75,6 +75,8 @@ def show_raw_data(container, sidebar, total, df, C):
             df, st.session_state.mask, columns_to_filter_on
         )
 
+    df = df[st.session_state.mask]
+
     with container:
         selected_row = st.dataframe(
             df,
