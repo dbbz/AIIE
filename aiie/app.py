@@ -193,6 +193,7 @@ pages = {
         st.Page(sankey, title="Sankey", icon="🤓"),
         st.Page(interactions, title="Interactions", icon="📊"),
         st.Page(umap, title="UMAP", icon="✨"),
+        st.Page("cleaning.py", title="Cleaning", icon="🧽"),
     ],
 }
 pg = st.navigation(pages)

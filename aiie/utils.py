@@ -157,7 +157,10 @@ def category_text_filter(df, mask, column_names) -> np.ndarray:
 
 # make_dataframe_filters()
 def dataframe_with_filters(
-    df: pd.DataFrame, on_columns: list, mask: np.ndarray | None = None
+    df: pd.DataFrame,
+    on_columns: list,
+    mask: np.ndarray | None = None,
+    text: str | None = None,
 ) -> np.ndarray:
     """
     Adds a UI on top of a dataframe to let viewers filter columns.
@@ -170,8 +173,9 @@ def dataframe_with_filters(
     """
     mask = np.full_like(df.index, True, dtype=bool) if mask is None else mask
 
+    text = text or "Filter the repository on specific terms"
     search = st.text_input(
-        "Filter the repository on specific terms",
+        text,
         placeholder="Enter comma-separated keywords...",
         help="Case-insensitive, comma-separated keywords. Prefix with ~ to exclude.",
     )

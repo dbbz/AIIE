@@ -140,12 +140,16 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def get_clean_data(file_path="repository.csv"):
+def get_clean_data(file_path="repository.csv", raw: bool = False):
     # df = read_gsheet(AIAAIC_SHEET_ID, AIAAIC_SHEET_NAME)
     df = get_repository_data().dropna(how="all")
 
     columns_to_keep = list(map(str, C))
-    df = clean_data(df)[columns_to_keep]
+
+    if not raw:
+        df = clean_data(df)
+
+    df = df[columns_to_keep]
 
     # remove hidden columns
     # df = df.drop(
