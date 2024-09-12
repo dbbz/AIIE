@@ -19,7 +19,8 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-from plotting import interactions, rankings, sankey, timeline, umap
+from plotting import rankings, sankey, timeline
+# from plotting import interactions umap
 
 st.html("""
   <style>
@@ -190,10 +191,10 @@ pages = {
         # st.Page("plots.py", title="Timeline", icon="📈"),
         st.Page(timeline, title="Timeline", icon="⏳"),
         st.Page(rankings, title="Rankings", icon="🏆"),
-        st.Page(sankey, title="Sankey", icon="🤓"),
-        st.Page(interactions, title="Interactions", icon="📊"),
-        st.Page(umap, title="UMAP", icon="✨"),
-        st.Page("cleaning.py", title="Cleaning", icon="🧽"),
+        st.Page(sankey, title="Interactions", icon="🤓"),
+        # st.Page(interactions, title="Interactions", icon="📊"),
+        # st.Page(umap, title="UMAP", icon="✨"),
+        # st.Page("cleaning.py", title="Cleaning", icon="🧽"),
     ],
 }
 pg = st.navigation(pages)
